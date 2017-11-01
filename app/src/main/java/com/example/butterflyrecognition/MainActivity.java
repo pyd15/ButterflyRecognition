@@ -14,18 +14,23 @@ import android.os.Bundle;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
@@ -36,16 +41,43 @@ public class MainActivity extends AppCompatActivity {
     private ImageView picture;
     private Uri imageUri;
 
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
+    private Button takePhoto;
+    private Button choosePhoto;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         //隐藏标题栏
-        ActionBar actionBar = getSupportActionBar();
+//        ActionBar actionBar = getSupportActionBar();
+//        if (actionBar != null) {
+//            actionBar.hide();
+//        }
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+        ActionBar actionBar=getSupportActionBar();
         if (actionBar != null) {
-            actionBar.hide();
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(R.drawable.icons_menu3);
         }
+
+        navigationView.setCheckedItem(R.id.nav_call);//将call菜单设置为默认选中
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                //此处用于处理点击任意菜单项后的逻辑
+                drawerLayout.closeDrawers();
+                return true;
+            }
+        });
 
         Button takePhoto = (Button) findViewById(R.id.take_photo);
         Button choosePhoto = (Button) findViewById(R.id.choose_from_album);
@@ -72,7 +104,8 @@ public class MainActivity extends AppCompatActivity {
                 //启动相机
                 Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                startActivityForResult(intent,TAKE_PHOTO);
+//                startActivityForResult(intent,TAKE_PHOTO);
+                startActivityForResult(intent,CROP_PHOTO_FORCAMERA);
             }
         });
 
@@ -94,12 +127,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                     if (Build.VERSION.SDK_INT >= 24) {
                         //别忘了注册FileProvider内容提供器
-                        imageUri = FileProvider.getUriForFile(MainActivity.this, "com.example.testcameraalbum.fileProvider", outputImage);
+                        imageUri = FileProvider.getUriForFile(MainActivity.this, "com.example.butterflyrecognition.fileProvider", outputImage);
                     } else {
                         imageUri = Uri.fromFile(outputImage);
                     }
                     openAlbum();
-
                 }
             }
         });
@@ -108,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
     private void openAlbum() {
         Intent intent = new Intent("android.intent.action.GET_CONTENT");
         intent.setDataAndType(imageUri,"image/*");
+        intent.putExtra("scale", true);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);//设置图片的输出位置
         startActivityForResult(intent,CHOOSE_PHOTO);//打开相册
     }
@@ -151,8 +184,11 @@ public class MainActivity extends AppCompatActivity {
                         imageUri1 = handleImageBeforeKitKat(data);
                     }
                     imageUri=imageUri1;
+//                    displayImage(imageUri.getPath());
+
                     Intent intent = new Intent("com.android.camera.action.CROP");
-                    intent.setDataAndType(imageUri1,"image/*");
+//                    Intent intent = new Intent("android.intent.action.GET_CONTENT");
+                    intent.setDataAndType(imageUri,"image/*");
                     intent.putExtra("crop", true);//允许裁剪
                     intent.putExtra("scale", true);//允许缩放
                     intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri1);//设置图片的输出位置
@@ -160,12 +196,18 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case CROP_PHOTO_FORCAMERA:
-                try {
-                    Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
-                    picture.setImageBitmap(bitmap);//将裁剪后的照片显示出来
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
+//                                        picture.setImageBitmap(bitmap);//将裁剪后的照片显示出来
+//                } catch (FileNotFoundException e) {
+//                    e.printStackTrace();
+//                }
+                Intent intent = new Intent(this, ImageActivity.class);
+                intent.putExtra("scale", true);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                intent.putExtra("imagePath", imageUri.toString());
+                startActivity(intent);
+
                 break;
             case CROP_PHOTO_FORALBUM:
                 displayImage( imageUri.getPath());
@@ -227,6 +269,45 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Failed to get image!", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        //加载toolbar菜单文件
+        getMenuInflater().inflate(R.menu.toolbar,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+
+            case R.id.settings:
+                // intent.setType("text/plain"); //纯文本
+            /*
+             * 图片分享 it.setType("image/png"); 　//添加图片 File f = new
+             * File(Environment.getExternalStorageDirectory()+"/name.png");
+             *
+             * Uri uri = Uri.fromFile(f); intent.putExtra(Intent.EXTRA_STREAM,
+             * uri); 　
+             */
+                Intent intent=new Intent(Intent.ACTION_SEND);
+                intent.setType("image/*");
+                intent.putExtra(Intent.EXTRA_SUBJECT, "Share");
+                //分享图片
+                intent.putExtra(Intent.EXTRA_STREAM,imageUri);
+                //分享文本
+                intent.putExtra(Intent.EXTRA_TEXT, "I have successfully share my message through my app");
+//                intent.putExtra("Kdescription", "wwwwwwwwwwwwwwwwwwww");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(Intent.createChooser(intent, getTitle()));
+                return true;
+            case android.R.id.home:
+                drawerLayout.openDrawer(GravityCompat.START);
+                break;
+            default:break;
+        }
+        return true;
     }
 
 }
