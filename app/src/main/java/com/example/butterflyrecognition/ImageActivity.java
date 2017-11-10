@@ -37,7 +37,7 @@ public class ImageActivity extends AppCompatActivity {
         //        String butterflyName = intent.getStringExtra(BUTTERFLY_NAME);
         //        int butterflyImageId = intent.getIntExtra(BUTTERFLY_IMAGE_ID,0);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_image);
         final CollapsingToolbarLayout collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
         ImageView butterflyImageView = (ImageView) findViewById(R.id.butterfly_image_view);
         TextView butterflyContentText = (TextView) findViewById(R.id.butterfly_content_text);

@@ -30,10 +30,12 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.example.butterflyrecognition.recycleView.ButterflyActivity;
+
 import java.io.File;
 import java.io.IOException;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     public static final int TAKE_PHOTO=1;
     public static final int CHOOSE_PHOTO=2;
     public static final int CROP_PHOTO_FORCAMERA=3;
@@ -45,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private NavigationView navigationView;
     private Button takePhoto;
     private Button choosePhoto;
+    private Button search;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,9 +60,9 @@ public class MainActivity extends AppCompatActivity {
 //            actionBar.hide();
 //        }
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
+        toolbar.setTitle("");
         setSupportActionBar(toolbar);
-
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
 
@@ -79,12 +82,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button takePhoto = (Button) findViewById(R.id.take_photo);
-        Button choosePhoto = (Button) findViewById(R.id.choose_from_album);
+        takePhoto = (Button) findViewById(R.id.take_photo);
+        choosePhoto = (Button) findViewById(R.id.choose_from_album);
+        search = (Button) findViewById(R.id.search);
         picture = (ImageView) findViewById(R.id.picture);
-        takePhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+
+        takePhoto.setOnClickListener(this);
+        choosePhoto.setOnClickListener(this);
+        search.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.take_photo:
                 //创建File对象用于存储拍摄的照片
                 File outputImage = new File(getExternalCacheDir(),"tempImage.jpg");;
                 try {
@@ -104,37 +115,50 @@ public class MainActivity extends AppCompatActivity {
                 //启动相机
                 Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-//                startActivityForResult(intent,TAKE_PHOTO);
+                //                startActivityForResult(intent,TAKE_PHOTO);
                 startActivityForResult(intent,CROP_PHOTO_FORCAMERA);
-            }
-        });
-
-        choosePhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+                break;
+            case R.id.choose_from_album:
                 if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                     //动态申请WRITE_EXTERNAL_STORAGE权限
                     ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 } else {
-                    File outputImage = new File(getExternalCacheDir(),"fromAlbumImage.jpg");;
+                    File outputImage1 = new File(getExternalCacheDir(),"fromAlbumImage.jpg");;
                     try {
-                        if (outputImage.exists()) {
-                            outputImage.delete();
+                        if (outputImage1.exists()) {
+                            outputImage1.delete();
                         }
-                        outputImage.createNewFile();
+                        outputImage1.createNewFile();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                     if (Build.VERSION.SDK_INT >= 24) {
                         //别忘了注册FileProvider内容提供器
-                        imageUri = FileProvider.getUriForFile(MainActivity.this, "com.example.butterflyrecognition.fileProvider", outputImage);
+                        imageUri = FileProvider.getUriForFile(MainActivity.this, "com.example.butterflyrecognition.fileProvider", outputImage1);
                     } else {
-                        imageUri = Uri.fromFile(outputImage);
+                        imageUri = Uri.fromFile(outputImage1);
                     }
                     openAlbum();
                 }
-            }
-        });
+                break;
+            case R.id.search:
+                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                                    ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+                                }
+//                HttpAction.sendRequestWithOkHttp();
+                Intent intent1 = new Intent(this, ButterflyActivity.class);
+                startActivity(intent1);
+                //获取当前Android SDK版本号
+                int version = android.os.Build.VERSION.SDK_INT;
+                if(version > 5 ){
+                    //设置跳转动画
+
+                    overridePendingTransition(R.anim.in_from_right_to_center, R.anim.out_from_center_to_left);
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     private void openAlbum() {
