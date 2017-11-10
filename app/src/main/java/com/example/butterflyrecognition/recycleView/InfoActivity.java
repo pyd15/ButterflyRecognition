@@ -19,6 +19,10 @@ import com.example.butterflyrecognition.db.ButterflyInfo;
 
 import org.litepal.crud.DataSupport;
 
+/**
+ * Created by Dr.P on 2017/10/10.
+ */
+
 public class InfoActivity extends AppCompatActivity {
 
     ImageView butterflypicture;
@@ -85,8 +89,16 @@ public class InfoActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
+                overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+        overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
+        super.onBackPressed();
     }
 }

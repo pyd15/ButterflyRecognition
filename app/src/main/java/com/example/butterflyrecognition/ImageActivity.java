@@ -22,6 +22,10 @@ import java.io.FileNotFoundException;
 
 import snackbar.SnackBarUtil;
 
+/**
+ * Created by Dr.P on 2017/10/10.
+ */
+
 public class ImageActivity extends AppCompatActivity {
     public static final String BUTTERFLY_NAME = "butterfly_image";
     public static final String BUTTERFLY_IMAGE_ID = "butterfly_image_id";
@@ -110,5 +114,12 @@ public class ImageActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+        overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
+        super.onBackPressed();
     }
 }

@@ -32,13 +32,14 @@ public class ButterflyAdapter extends RecyclerView.Adapter<ButterflyAdapter.View
             View butterflyView;
             ImageView butterflyImage;
             TextView butterflyname;
-
+            TextView butterflylatinName;
 
         public ViewHolder(View view) {
             super(view);
             butterflyView =view;
             butterflyImage =(ImageView)view.findViewById(R.id.butterfly_image);
             butterflyname =(TextView)view.findViewById(R.id.butterfly_name);
+            butterflylatinName = (TextView) view.findViewById(R.id.butterfly_latinName);
         }
     }
 
@@ -59,21 +60,12 @@ public class ButterflyAdapter extends RecyclerView.Adapter<ButterflyAdapter.View
             public void onClick(View view) {
                 int postiton=holder.getAdapterPosition();
                 ButterflyInfo butterflyInfo = myButterflyList.get(postiton);
-//                Toast.makeText(view.getContext(),"you clicked view ",Toast.LENGTH_SHORT).show();
-
                 Intent intent = new Intent(context,InfoActivity.class);
                 intent.putExtra("butterflyNo", butterflyInfo.getId());
                 context.startActivity(intent);
 
             }
         });
-//        holder.butterflyImage.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                int postiton=holder.getAdapterPosition();
-//                Toast.makeText(view.getContext(),"you clicked image "+ butterfly.getImageId(),Toast.LENGTH_SHORT).show();
-//            }
-//        });
         holder.butterflyname.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -101,6 +93,7 @@ public class ButterflyAdapter extends RecyclerView.Adapter<ButterflyAdapter.View
         }
         holder.butterflyname.setText(butterflyInfo.getName());
         holder.butterflyImage.setImageURI(Uri.parse(imagePath));
+        holder.butterflylatinName.setText(butterflyInfo.getLatinName());
     }
 
     @Override

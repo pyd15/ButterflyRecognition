@@ -35,6 +35,10 @@ import com.example.butterflyrecognition.recycleView.ButterflyActivity;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * Created by Dr.P on 2017/10/10.
+ */
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     public static final int TAKE_PHOTO=1;
     public static final int CHOOSE_PHOTO=2;
@@ -62,6 +66,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         toolbar.setTitle("");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            toolbar.setElevation(10);
+        }
         setSupportActionBar(toolbar);
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -69,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ActionBar actionBar=getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(R.drawable.icons_menu3);
+            actionBar.setHomeAsUpIndicator(R.drawable.menu5);
         }
 
         navigationView.setCheckedItem(R.id.nav_call);//将call菜单设置为默认选中
@@ -148,12 +155,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                HttpAction.sendRequestWithOkHttp();
                 Intent intent1 = new Intent(this, ButterflyActivity.class);
                 startActivity(intent1);
+//                实现淡入淡出的效果1
+//                overridePendingTransition(R.anim.splash_screen_fade, R.anim.splash_screen_hold);
+//                实现淡入淡出的效果2
+                overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
+//                由左向右滑入的效果
+//                overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
                 //获取当前Android SDK版本号
                 int version = android.os.Build.VERSION.SDK_INT;
                 if(version > 5 ){
                     //设置跳转动画
-
-                    overridePendingTransition(R.anim.in_from_right_to_center, R.anim.out_from_center_to_left);
+//                    overridePendingTransition(R.anim.in_from_right_to_center, R.anim.out_from_center_to_left);
                 }
                 break;
             default:
@@ -216,7 +228,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     intent.putExtra("crop", true);//允许裁剪
                     intent.putExtra("scale", true);//允许缩放
                     intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri1);//设置图片的输出位置
-                    startActivityForResult(intent,CROP_PHOTO_FORALBUM);//跳转至处理相册中选取的图片
+                    startActivityForResult(intent,CROP_PHOTO_FORCAMERA);//跳转至处理相册中选取的图片
                 }
                 break;
             case CROP_PHOTO_FORCAMERA:

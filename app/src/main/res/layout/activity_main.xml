@@ -11,21 +11,24 @@
 
     <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        >
 
         <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:elevation="2dp">
+            android:fitsSystemWindows="true"
+            app:elevation="18dp">
 
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar_main"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="#00889a"
-                android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+                android:theme="@style/AppTheme"
                 app:popupTheme="@style/Theme.AppCompat.Light"
                 app:layout_scrollFlags="scroll|enterAlways|snap"
+                android:elevation="10dp"
                 >
 
                 <TextView
@@ -64,7 +67,7 @@
                 android:layout_height="130dp"
                 android:layout_gravity="center"
                 android:layout_marginTop="150dp"
-                android:background="@drawable/camera1"
+                android:background="@drawable/camera3"
                 />
 
             <LinearLayout

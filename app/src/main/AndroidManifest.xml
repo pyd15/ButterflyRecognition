@@ -24,14 +24,12 @@
                 android:resource="@xml/file_paths"/>
         </provider>
         <activity android:name=".MainActivity"
-                  android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+                  android:theme="@style/AppTheme"
                   android:label="蝴蝶识别"
-
-                  android:launchMode="singleInstance">
+                  android:launchMode="singleInstance"
             >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
