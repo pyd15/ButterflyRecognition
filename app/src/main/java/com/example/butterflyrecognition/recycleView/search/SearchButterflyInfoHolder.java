@@ -1,15 +1,15 @@
 package com.example.butterflyrecognition.recycleView.search;
 
-import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.example.butterflyrecognition.R;
 import com.example.butterflyrecognition.Util.DownImage;
-import com.example.butterflyrecognition.db.ButterflyInfo;
+import com.example.butterflyrecognition.recycleView.indexBar.ButterflyInfo_copy;
 
 import java.util.concurrent.ExecutionException;
 
@@ -38,7 +38,7 @@ public class SearchButterflyInfoHolder extends RecyclerView.ViewHolder {
         ButterKnife.bind(this, itemView);
     }
 
-    public void bind(ButterflyInfo butterflyInfo) {
+    public void bind(ButterflyInfo_copy butterflyInfo) {
 
         String imagePath=butterflyInfo.getImagePath();
         Log.d("ButterflyAdapter", butterflyInfo.getImagePath());
@@ -52,7 +52,8 @@ public class SearchButterflyInfoHolder extends RecyclerView.ViewHolder {
             }
         }
         butterflyName.setText(butterflyInfo.getName());
-        butterflyImage.setImageURI(Uri.parse(imagePath));
+        //        butterflyImage.setImageURI(Uri.parse(imagePath));
+        Glide.with(butterflyView.getContext()).load(imagePath).into(butterflyImage);
         butterflyLatinName.setText(butterflyInfo.getLatinName());
     }
 }

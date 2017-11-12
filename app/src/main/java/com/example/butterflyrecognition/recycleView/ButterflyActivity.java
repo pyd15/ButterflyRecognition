@@ -1,6 +1,7 @@
 package com.example.butterflyrecognition.recycleView;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -24,14 +25,18 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.butterflyrecognition.R;
 import com.example.butterflyrecognition.Util.HttpAction;
 import com.example.butterflyrecognition.db.ButterflyInfo;
+import com.example.butterflyrecognition.recycleView.indexBar.ButterflyInfo_copy;
 import com.example.butterflyrecognition.recycleView.search.HeaderAdapter;
 import com.example.butterflyrecognition.recycleView.search.RecyclerOnItemClickListener;
 import com.example.butterflyrecognition.recycleView.search.SearchButterflyInfoAdapter;
+import com.mcxtzhang.indexlib.IndexBar.widget.IndexBar;
+import com.mcxtzhang.indexlib.suspension.SuspensionDecoration;
 import com.miguelcatalan.materialsearchview.MaterialSearchView;
 
 import org.litepal.crud.DataSupport;
@@ -56,10 +61,23 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
     private SearchButterflyInfoAdapter butterflyAdapter;
 //    ButterflyAdapter butterflyAdapter;
 
+    private SuspensionDecoration butterflyDecoration;
+    /**
+     * 右侧边栏导航区域
+     */
+    private IndexBar mIndexBar;
+
+    /**
+     * 显示指示器DialogText
+     */
+    private TextView mTvSideBarHint;
+
     private IntentFilter intentFilter;
     private NetworkChangeReciver networkChangeReciver;
 
-    static List<ButterflyInfo> butterflyInfoList=new ArrayList<>();
+    List<ButterflyInfo> butterflyInfoList = new ArrayList<>();
+    List<ButterflyInfo_copy> butterflyInfo_copyList = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,64 +90,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
         intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
         networkChangeReciver = new NetworkChangeReciver();
         registerReceiver(networkChangeReciver, intentFilter);
-        RecyclerView recyclerView=(RecyclerView)findViewById(R.id.recycler_view);
 
-//        /**
-//         * 默认情况下, search widget是"iconified“的，只是用一个图标 来表示它(一个放大镜),
-//         * 当用户按下它的时候才显示search box . 你可以调用setIconifiedByDefault(false)让search
-//         * box默认都被显示。 你也可以调用setIconified()让它以iconified“的形式显示。
-//         */
-//        mSearchView.setIconifiedByDefault(false);
-//        /**
-//         * 默认情况下是没提交搜索的按钮，所以用户必须在键盘上按下"enter"键来提交搜索.你可以同过setSubmitButtonEnabled(
-//         * true)来添加一个提交按钮（"submit" button)
-//         * 设置true后，右边会出现一个箭头按钮。如果用户没有输入，就不会触发提交（submit）事件
-//         */
-//        mSearchView.setSubmitButtonEnabled(true);
-//        /**
-//         * 初始是否已经是展开的状态
-//         * 写上此句后searchView初始展开的，也就是是可以点击输入的状态，如果不写，那么就需要点击下放大镜，才能展开出现输入框
-//         */
-////        mSearchView.onActionViewExpanded();
-//        mSearchView.onActionViewCollapsed();
-//        // 设置search view的背景色
-//        mSearchView.setBackgroundColor(0x22ff00ff);
-//        /**
-//         * 默认情况下, search widget是"iconified“的，只是用一个图标 来表示它(一个放大镜),
-//         * 当用户按下它的时候才显示search box . 你可以调用setIconifiedByDefault(false)让search
-//         * box默认都被显示。 你也可以调用setIconified()让它以iconified“的形式显示。
-//         */
-//        mSearchView.setIconifiedByDefault(true);
-
-//        mSearchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
-//            @Override
-//            public boolean onQueryTextSubmit(String query) {
-//
-//                return true;
-//            }
-//
-//            @Override
-//            public boolean onQueryTextChange(String newText) {
-//                final List<ButterflyInfo> filteredModelList = filter(butterflyInfoList, newText);
-//
-//                //reset
-////                butterflyAdapter.setFilter(filteredModelList);
-////                mAdapter.animateTo(filteredModelList);
-////                recyclerView.scrollToPosition(0);
-//                return true;
-//            }
-//        });
-
-//        mSearchView.setOnSearchViewListener(new MaterialSearchView.SearchViewListener() {
-//            @Override
-//            public void onSearchViewShown() {
-//            }
-//
-//            @Override
-//            public void onSearchViewClosed() {
-//                mAdapter.setFilter(mButterflyInfoList);
-//            }
-//        });
     }
 
     private void initView() {
@@ -153,36 +114,67 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
     private void  initButterfly() {
         List<ButterflyInfo> list= DataSupport.findAll(ButterflyInfo.class);
         butterflyInfoList.clear();
+        butterflyInfo_copyList.clear();
+        ButterflyInfo_copy butterflyInfo_copy;
         for (ButterflyInfo butterflyInfo : list) {
-            Log.d("ButterflyActivity", "id is " + butterflyInfo.getId());
-            Log.d("ButterflyActivity", "name is " + butterflyInfo.getName());
-            Log.d("ButterflyActivity", "ename is " + butterflyInfo.getLatinName());
-            Log.d("ButterflyActivity", "desc is " + butterflyInfo.getFeature());
-            Log.d("ButterflyActivity", "type is " + butterflyInfo.getType());
-            Log.d("ButterflyActivity", "image is " + butterflyInfo.getImageUrl());
+            butterflyInfo_copy = new ButterflyInfo_copy();
+            butterflyInfo_copy.setId(butterflyInfo.getId());
+            butterflyInfo_copy.setName(butterflyInfo.getName());
+            butterflyInfo_copy.setLatinName(butterflyInfo.getLatinName());
+            butterflyInfo_copy.setFeature(butterflyInfo.getFeature());
+            butterflyInfo_copy.setType(butterflyInfo.getType());
+            butterflyInfo_copy.setRare(butterflyInfo.getRare());
+            butterflyInfo_copy.setProtect(butterflyInfo.getProtect());
+            butterflyInfo_copy.setImagePath(butterflyInfo.getImagePath());
+            butterflyInfo_copy.setImageUrl(butterflyInfo.getImageUrl());
+            butterflyInfo_copy.setUniqueToChina(butterflyInfo.getUniqueToChina());
+            Log.d("ButterflyInfo_copy", "id is " + butterflyInfo_copy.getId());
+            Log.d("ButterflyInfo_copy", "name is " + butterflyInfo_copy.getName());
+            Log.d("ButterflyInfo_copy", "ename is " + butterflyInfo_copy.getLatinName());
+            Log.d("ButterflyInfo_copy", "desc is " + butterflyInfo_copy.getFeature());
+            Log.d("ButterflyInfo_copy", "type is " + butterflyInfo_copy.getType());
+            Log.d("ButterflyInfo_copy", "image is " + butterflyInfo_copy.getImagePath());
             butterflyInfoList.add(butterflyInfo);
+            butterflyInfo_copyList.add(butterflyInfo_copy);
+        }
+        for (int i = 0; i < butterflyInfo_copyList.size(); i++) {
+            Log.d("length", String.valueOf(butterflyInfo_copyList.get(i)));
         }
     }
 
     /**
      * init RecyclerView
      */
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     private void initRecyclerView() {
         initButterfly();
 
         LinearLayoutManager layoutManager=new LinearLayoutManager(this);
-        //        //元素默认为纵向排列
-        //        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        //        StaggeredGridLayoutManager layoutManager=new StaggeredGridLayoutManager(1,StaggeredGridLayoutManager.VERTICAL);
-        //        GridLayoutManager layoutManager=new GridLayoutManager(ButterflyActivity.this,2);
 
         recyclerView.setLayoutManager(layoutManager);
-//        butterflyAdapter=new ButterflyAdapter(butterflyInfoList);
-        butterflyAdapter = new SearchButterflyInfoAdapter(butterflyInfoList);
+        butterflyAdapter = new SearchButterflyInfoAdapter(butterflyInfo_copyList);
         recyclerView.setAdapter(butterflyAdapter);
         HeaderAdapter adapter = new HeaderAdapter(butterflyAdapter);
         recyclerView.setAdapter(adapter);
+        recyclerView.addItemDecoration(butterflyDecoration = new SuspensionDecoration(this, butterflyInfo_copyList));
         recyclerView.addItemDecoration(new DividerItemDecoration(this,LinearLayoutManager.VERTICAL));
+
+        //使用indexBar
+        mTvSideBarHint = (TextView) findViewById(R.id.tvSideBarHint);//HintTextView
+        mIndexBar = (IndexBar) findViewById(R.id.indexBar);//IndexBar
+
+        //indexbar初始化
+        mIndexBar.setmPressedShowTextView(mTvSideBarHint)//设置HintTextView
+                .setNeedRealIndex(true)//设置需要真实的索引
+                .setmLayoutManager(layoutManager);//设置RecyclerView的LayoutManager
+        mIndexBar.setmSourceDatas(butterflyInfo_copyList)//设置数据
+                .invalidate();
+        butterflyAdapter.setDatas(butterflyInfo_copyList);
+        if (butterflyInfo_copyList.size() < 5) {
+            mIndexBar.setVisibility(View.INVISIBLE);
+        }
+
+        butterflyDecoration.setmDatas(butterflyInfo_copyList);
     }
 
     /**
@@ -202,8 +194,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                final List<ButterflyInfo> filteredModelList = filter(butterflyInfoList, newText);
-
+                final List<ButterflyInfo_copy> filteredModelList = filter(butterflyInfo_copyList, newText);
                 //reset
                 butterflyAdapter.setFilter(filteredModelList);
                 butterflyAdapter.animateTo(filteredModelList);
@@ -219,7 +210,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
 
             @Override
             public void onSearchViewClosed() {
-                butterflyAdapter.setFilter(butterflyInfoList);
+                butterflyAdapter.setFilter(butterflyInfo_copyList);
             }
         });
     }
@@ -265,7 +256,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
                     @Override
                     public void run() {
                         HttpAction.sendRequestWithOkHttp();
-                        initButterfly();
+                        //                        initButterfly();
                         butterflyAdapter.notifyDataSetChanged();
                         swipeRefreshLayout.setRefreshing(false);
                         Toast.makeText(ButterflyActivity.this, "更新成功！", Toast.LENGTH_SHORT).show();
@@ -288,11 +279,11 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
      * @param query
      * @return
      */
-    private List<ButterflyInfo> filter(List<ButterflyInfo> butterflyinfos, String query) {
+    private List<ButterflyInfo_copy> filter(List<ButterflyInfo_copy> butterflyinfos, String query) {
         query = query.toLowerCase();
 
-        final List<ButterflyInfo> filteredModelList = new ArrayList<>();
-        for (ButterflyInfo butterflyinfo : butterflyinfos) {
+        final List<ButterflyInfo_copy> filteredModelList = new ArrayList<>();
+        for (ButterflyInfo_copy butterflyinfo : butterflyinfos) {
             final String name = butterflyinfo.getName();
             final String latinName = butterflyinfo.getLatinName();
             if (name.contains(query) ||  latinName.contains(query) ) {
@@ -399,3 +390,60 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
 
     }
 }
+
+//        /**
+//         * 默认情况下, search widget是"iconified“的，只是用一个图标 来表示它(一个放大镜),
+//         * 当用户按下它的时候才显示search box . 你可以调用setIconifiedByDefault(false)让search
+//         * box默认都被显示。 你也可以调用setIconified()让它以iconified“的形式显示。
+//         */
+//        mSearchView.setIconifiedByDefault(false);
+//        /**
+//         * 默认情况下是没提交搜索的按钮，所以用户必须在键盘上按下"enter"键来提交搜索.你可以同过setSubmitButtonEnabled(
+//         * true)来添加一个提交按钮（"submit" button)
+//         * 设置true后，右边会出现一个箭头按钮。如果用户没有输入，就不会触发提交（submit）事件
+//         */
+//        mSearchView.setSubmitButtonEnabled(true);
+//        /**
+//         * 初始是否已经是展开的状态
+//         * 写上此句后searchView初始展开的，也就是是可以点击输入的状态，如果不写，那么就需要点击下放大镜，才能展开出现输入框
+//         */
+////        mSearchView.onActionViewExpanded();
+//        mSearchView.onActionViewCollapsed();
+//        // 设置search view的背景色
+//        mSearchView.setBackgroundColor(0x22ff00ff);
+//        /**
+//         * 默认情况下, search widget是"iconified“的，只是用一个图标 来表示它(一个放大镜),
+//         * 当用户按下它的时候才显示search box . 你可以调用setIconifiedByDefault(false)让search
+//         * box默认都被显示。 你也可以调用setIconified()让它以iconified“的形式显示。
+//         */
+//        mSearchView.setIconifiedByDefault(true);
+
+//        mSearchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
+//            @Override
+//            public boolean onQueryTextSubmit(String query) {
+//
+//                return true;
+//            }
+//
+//            @Override
+//            public boolean onQueryTextChange(String newText) {
+//                final List<ButterflyInfo> filteredModelList = filter(butterflyInfoList, newText);
+//
+//                //reset
+////                butterflyAdapter.setFilter(filteredModelList);
+////                mAdapter.animateTo(filteredModelList);
+////                recyclerView.scrollToPosition(0);
+//                return true;
+//            }
+//        });
+
+//        mSearchView.setOnSearchViewListener(new MaterialSearchView.SearchViewListener() {
+//            @Override
+//            public void onSearchViewShown() {
+//            }
+//
+//            @Override
+//            public void onSearchViewClosed() {
+//                mAdapter.setFilter(mButterflyInfoList);
+//            }
+//        });

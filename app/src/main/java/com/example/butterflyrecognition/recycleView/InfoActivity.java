@@ -1,7 +1,6 @@
 package com.example.butterflyrecognition.recycleView;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -13,6 +12,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.example.butterflyrecognition.MainActivity;
 import com.example.butterflyrecognition.R;
 import com.example.butterflyrecognition.db.ButterflyInfo;
@@ -44,7 +44,7 @@ public class InfoActivity extends AppCompatActivity {
         ButterflyInfo butterflyInfo = DataSupport.find(ButterflyInfo.class, id);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_info);
-        final CollapsingToolbarLayout collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+        final CollapsingToolbarLayout collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.image_collapsing_toolbar);
         FloatingActionButton fab_fruit_content = (FloatingActionButton) findViewById(R.id.fab_fruit_content);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
@@ -73,13 +73,15 @@ public class InfoActivity extends AppCompatActivity {
         protecttext.setText(butterflyInfo.getProtect());
         raretext.setText(butterflyInfo.getRare());
         uniqueToChinatext.setText(butterflyInfo.getUniqueToChina());
-        butterflypicture.setImageURI(Uri.parse(butterflyInfo.getImagePath()));
+        //        butterflypicture.setImageURI(Uri.parse(butterflyInfo.getImagePath()));
+        Glide.with(this).load(butterflyInfo.getImagePath()).into(butterflypicture);
 
         fab_fruit_content.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(InfoActivity.this, MainActivity.class);
                 startActivity(intent);
+                overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
             }
         });
     }

@@ -23,6 +23,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,6 +31,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.example.butterflyrecognition.Util.HttpAction;
 import com.example.butterflyrecognition.recycleView.ButterflyActivity;
 
 import java.io.File;
@@ -116,8 +118,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (Build.VERSION.SDK_INT >= 24) {
                     //别忘了注册FileProvider内容提供器
                     imageUri = FileProvider.getUriForFile(MainActivity.this, "com.example.butterflyrecognition.fileProvider", outputImage);
+                    Log.d("imageUri_sdk>24", imageUri.toString());
                 } else {
                     imageUri = Uri.fromFile(outputImage);
+                    Log.d("imageUri_sdk<24", imageUri.toString());
                 }
                 //启动相机
                 Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
@@ -139,20 +143,50 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                    Log.d("image_output", outputImage1.getPath());
                     if (Build.VERSION.SDK_INT >= 24) {
                         //别忘了注册FileProvider内容提供器
                         imageUri = FileProvider.getUriForFile(MainActivity.this, "com.example.butterflyrecognition.fileProvider", outputImage1);
                     } else {
                         imageUri = Uri.fromFile(outputImage1);
                     }
+                    //                    Log.d("imageUri_openAlbum", imageUri.toString());
+                    //                    openAlbum();
+                    //                }
+                    //                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    //                    //动态申请WRITE_EXTERNAL_STORAGE权限
+                    //                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                    //                }
+                    ////                else {
+                    //                    File outputImage1 = new File(getExternalCacheDir(),"fromAlbumImage.jpg");;
+                    //                    try {
+                    //                        if (outputImage1.exists()) {
+                    //                            outputImage1.delete();
+                    //                        }
+                    //                        outputImage1.createNewFile();
+                    //                    } catch (IOException e) {
+                    //                        e.printStackTrace();
+                    //                    }
+                    //                    if (Build.VERSION.SDK_INT >= 24) {
+                    //                        //别忘了注册FileProvider内容提供器
+                    //                        imageUri = FileProvider.getUriForFile(MainActivity.this, "com.example.butterflyrecognition.fileProvider", outputImage1);
+                    //                    } else {
+                    //                        imageUri = Uri.fromFile(outputImage1);
+                    //                    }
                     openAlbum();
                 }
                 break;
             case R.id.search:
                 if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                                     ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
-                                }
-//                HttpAction.sendRequestWithOkHttp();
+                }
+                //                new Thread(new Runnable() {
+                //                    @Override
+                //                    public void run() {
+                HttpAction.sendRequestWithOkHttp();
+                //                    }
+                //                }).start();
+
                 Intent intent1 = new Intent(this, ButterflyActivity.class);
                 startActivity(intent1);
 //                实现淡入淡出的效果1
@@ -174,11 +208,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void openAlbum() {
+        Log.d("imageUri_inopenAlbum", imageUri.toString());
         Intent intent = new Intent("android.intent.action.GET_CONTENT");
         intent.setDataAndType(imageUri,"image/*");
+        //        intent.setType("image/*");
         intent.putExtra("scale", true);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);//设置图片的输出位置
-        startActivityForResult(intent,CHOOSE_PHOTO);//打开相册
+        startActivityForResult(intent, CHOOSE_PHOTO);//进入相册选图
     }
 
     @Override
@@ -201,6 +237,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case TAKE_PHOTO:
                 if (resultCode == RESULT_OK) {
                     //将拍得的照片裁剪后显示出来
+                    Log.d("imageUri_TAKE_PHOTO", imageUri.toString());
                     Intent intent = new Intent("com.android.camera.action.CROP");
                     intent.setDataAndType(imageUri, "image/*");
                     intent.putExtra("scale", true);
@@ -219,9 +256,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         //其他系统用此方法处理图片
                         imageUri1 = handleImageBeforeKitKat(data);
                     }
+                    Log.d("imageUri1", imageUri1.toString());
                     imageUri=imageUri1;
 //                    displayImage(imageUri.getPath());
-
+                    Log.d("imageUri_CHOOSE", imageUri.toString());
                     Intent intent = new Intent("com.android.camera.action.CROP");
 //                    Intent intent = new Intent("android.intent.action.GET_CONTENT");
                     intent.setDataAndType(imageUri,"image/*");
@@ -229,6 +267,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     intent.putExtra("scale", true);//允许缩放
                     intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri1);//设置图片的输出位置
                     startActivityForResult(intent,CROP_PHOTO_FORCAMERA);//跳转至处理相册中选取的图片
+                    //                    Intent intent = new Intent(this, ImageActivity.class);
+                    //                    intent.putExtra("scale", true);
+                    //                    intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri1);
+                    //                    intent.putExtra("imagePath", imageUri.toString());
+                    //                    startActivityForResult(intent,CROP_PHOTO_FORCAMERA);
                 }
                 break;
             case CROP_PHOTO_FORCAMERA:
@@ -238,6 +281,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                } catch (FileNotFoundException e) {
 //                    e.printStackTrace();
 //                }
+                Log.d("imageUri_CROP_FORCAMERA", imageUri.toString());
                 Intent intent = new Intent(this, ImageActivity.class);
                 intent.putExtra("scale", true);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
@@ -257,6 +301,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Uri handleImageOnKitKat(Intent data) {
         String imagePath=null;
         Uri uri=data.getData();
+        Log.d("Uri", uri.toString());
         if (DocumentsContract.isDocumentUri(this, uri)) {
             //若为document类型的uri则通过document id处理
             String docID = DocumentsContract.getDocumentId(uri);

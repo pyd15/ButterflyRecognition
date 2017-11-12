@@ -127,28 +127,19 @@ public class HttpAction {
     }
 
     private static Boolean parseJSONWithGSON(String jsonData) throws ExecutionException, InterruptedException {
-        //        try {
-        //            JSONObject jsonObject = new JSONObject(jsonData);
-        //            JSONArray jsonArray=jsonObject.getJSONArray("");
-        //            String butterflyContent = jsonArray.getJSONObject(0).toString();
-        //            return new Gson().fromJson(butterflyContent, ButterflyInfo.class);
-        //        } catch (JSONException e) {
-        //            e.printStackTrace();
-        //        }
-        //        return null;
         Boolean flag=false;
         Gson gson = new Gson();
         List<ButterflyInfo> butterflyInfoList = gson.fromJson(jsonData, new TypeToken<List<ButterflyInfo>>(){}.getType());
         Connector.getDatabase();
         for (ButterflyInfo butterflyInfo : butterflyInfoList) {
-            butterflyInfo.setLatinName(butterflyInfo.getLatinName());
-            butterflyInfo.setFeature(butterflyInfo.getFeature());
-            butterflyInfo.setArea(butterflyInfo.getArea());
-            butterflyInfo.setId(butterflyInfo.getId());
-            butterflyInfo.setProtect(butterflyInfo.getProtect());
-            butterflyInfo.setRare(butterflyInfo.getRare());
-            butterflyInfo.setImageUrl(butterflyInfo.getImageUrl());
-            butterflyInfo.setUniqueToChina(butterflyInfo.getUniqueToChina());
+            //            butterflyInfo.setLatinName(butterflyInfo.getLatinName());
+            //            butterflyInfo.setFeature(butterflyInfo.getFeature());
+            //            butterflyInfo.setArea(butterflyInfo.getArea());
+            //            butterflyInfo.setId(butterflyInfo.getId());
+            //            butterflyInfo.setProtect(butterflyInfo.getProtect());
+            //            butterflyInfo.setRare(butterflyInfo.getRare());
+            //            butterflyInfo.setImageUrl(butterflyInfo.getImageUrl());
+            //            butterflyInfo.setUniqueToChina(butterflyInfo.getUniqueToChina());
             butterflyInfo.setImagePath((String)new DownImage().execute(butterflyInfo.getImageUrl()).get());
             Log.d("FilePath", butterflyInfo.getImagePath());
             butterflyInfo.save();

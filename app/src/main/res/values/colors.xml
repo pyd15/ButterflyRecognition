@@ -10,4 +10,6 @@
     <color name="toolbar_edge">#00889a</color>
     <!--primary #3F51B5-->
     <!--primarydark #303F9F -->
+
+    <color name="partTranslucent">#39000000</color>
 </resources>

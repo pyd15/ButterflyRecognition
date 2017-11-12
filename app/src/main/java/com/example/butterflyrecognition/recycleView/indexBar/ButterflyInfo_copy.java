@@ -1,21 +1,23 @@
-package com.example.butterflyrecognition.db;
+package com.example.butterflyrecognition.recycleView.indexBar;
 
 import com.google.gson.annotations.SerializedName;
+import com.mcxtzhang.indexlib.IndexBar.bean.BaseIndexPinyinBean;
 
-import org.litepal.crud.DataSupport;
+import org.litepal.annotation.Column;
 
 /**
- * Created by Dr.P on 2017/11/6.
+ * Created by Dr.P on 2017/11/12.
+ * runas /user:Dr.P "cmd /k"
  */
 
-public class ButterflyInfo extends DataSupport{
+public class ButterflyInfo_copy extends BaseIndexPinyinBean {
     @SerializedName("id")
     private int id;
 
     @SerializedName("image")
     private String imageUrl;
 
-    //    @Column(unique = true)
+    @Column(unique = true)
     @SerializedName("name")
     private String name;
 
@@ -42,7 +44,13 @@ public class ButterflyInfo extends DataSupport{
 
     private String imagePath;
 
-    public ButterflyInfo() {
+    private boolean isTop;//是否是最上面的 不需要被转化成拼音的
+
+    public ButterflyInfo_copy() {
+    }
+
+    public ButterflyInfo_copy(String name) {
+        this.name = name;
     }
 
     public int getId() {
@@ -93,8 +101,9 @@ public class ButterflyInfo extends DataSupport{
         this.id = id;
     }
 
-    public void setName(String name) {
+    public ButterflyInfo_copy setName(String name) {
         this.name = name;
+        return this;
     }
 
     public void setLatinName(String latinName) {
@@ -133,4 +142,28 @@ public class ButterflyInfo extends DataSupport{
         this.imagePath = imagePath;
     }
 
+    public boolean isTop() {
+        return isTop;
+    }
+
+    public ButterflyInfo_copy setTop(boolean top) {
+        isTop = top;
+        return this;
+    }
+
+    @Override
+    public String getTarget() {
+        return name;
+    }
+
+    @Override
+    public boolean isNeedToPinyin() {
+        return !isTop;
+    }
+
+
+    @Override
+    public boolean isShowSuspension() {
+        return !isTop;
+    }
 }
