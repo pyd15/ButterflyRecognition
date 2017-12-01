@@ -3,6 +3,7 @@ package com.example.butterflyrecognition.Util;
 import android.util.Log;
 
 import com.example.butterflyrecognition.db.ButterflyInfo;
+import com.example.butterflyrecognition.db.InfoDetail;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -29,6 +30,8 @@ import okhttp3.Response;
  */
 
 public class HttpAction {
+
+
     private void sendRequestWithHttpURLConnection() {
         // 开启线程来发起网络请求
         new Thread(new Runnable() {
@@ -69,8 +72,7 @@ public class HttpAction {
         }).start();
     }
 
-    public static Boolean sendRequestWithOkHttp() {
-        final Boolean[] flag = new Boolean[1];
+    public static void sendRequestWithOkHttp() {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -82,8 +84,7 @@ public class HttpAction {
                             .build();
                     Response response = client.newCall(request).execute();
                     String responseData = response.body().string();
-                    flag[0] =parseJSONWithGSON(responseData);
-                    Log.d("Flag", flag[0].toString());
+                    parseJSONWithGSON(responseData);
                     //                                        parseJSONWithJSONObject(responseData);
                     //                    parseXMLWithSAX(responseData);
                     //                    parseXMLWithPull(responseData);
@@ -95,11 +96,10 @@ public class HttpAction {
             }
         }).start();
 //        Log.d("Flagout", flag[0].toString());
-        return flag[0];
     }
 
 
-    private static void parseJSONWithJSONObject(String jsonData) {
+    public static void parseJSONWithJSONObject(String jsonData) {
         try {
             JSONArray jsonArray = new JSONArray(jsonData);
             for (int i = 0; i < jsonArray.length(); i++) {
@@ -126,39 +126,40 @@ public class HttpAction {
         }
     }
 
-    private static Boolean parseJSONWithGSON(String jsonData) throws ExecutionException, InterruptedException {
-        Boolean flag=false;
-        Gson gson = new Gson();
-        List<ButterflyInfo> butterflyInfoList = gson.fromJson(jsonData, new TypeToken<List<ButterflyInfo>>(){}.getType());
-        Connector.getDatabase();
-        for (ButterflyInfo butterflyInfo : butterflyInfoList) {
-            //            butterflyInfo.setLatinName(butterflyInfo.getLatinName());
-            //            butterflyInfo.setFeature(butterflyInfo.getFeature());
-            //            butterflyInfo.setArea(butterflyInfo.getArea());
-            //            butterflyInfo.setId(butterflyInfo.getId());
-            //            butterflyInfo.setProtect(butterflyInfo.getProtect());
-            //            butterflyInfo.setRare(butterflyInfo.getRare());
-            //            butterflyInfo.setImageUrl(butterflyInfo.getImageUrl());
-            //            butterflyInfo.setUniqueToChina(butterflyInfo.getUniqueToChina());
-            butterflyInfo.setImagePath((String)new DownImage().execute(butterflyInfo.getImageUrl()).get());
-            Log.d("FilePath", butterflyInfo.getImagePath());
-            butterflyInfo.save();
-            if (butterflyInfo.save()) {
-                flag=true;
+    public static boolean parseJSONWithGSON(String jsonData) throws ExecutionException, InterruptedException {
+        try {
+            Boolean flag = false;
+            Gson gson = new Gson();
+            ButterflyInfo butterflyInfo1 = gson.fromJson(jsonData, new TypeToken<ButterflyInfo>() {
+            }.getType());
+            //            Log.e("imagebutterflyInfo1", butterflyInfo1.setToDefault());
+            List<InfoDetail> butterflyInfoList = butterflyInfo1.infoDetailList;
+            Connector.getDatabase();
+            for (InfoDetail butterflyInfo : butterflyInfoList) {
+                butterflyInfo.setImageUrl("http://120.78.72.153:8080" + butterflyInfo.getImageUrl());
+                butterflyInfo.setImagePath((String) new DownImage().execute(butterflyInfo.getImageUrl()).get());
+                Log.d("FilePath", butterflyInfo.getImagePath());
+                butterflyInfo.save();
+                if (butterflyInfo.save()) {
+                    flag = true;
+                }
+                Log.d("flag", flag.toString());
+                showInfo("Activity", "id is " +
+                        butterflyInfo.getId(), "name is " +
+                        butterflyInfo.getName(), "latinName is " +
+                        butterflyInfo.getLatinName(), "type is " +
+                        butterflyInfo.getType(), "feature is " +
+                        butterflyInfo.getFeature(), "area is " +
+                        butterflyInfo.getArea(), "rare is " +
+                        butterflyInfo.getRare(), "uniqueToChina is " +
+                        butterflyInfo.getUniqueToChina(), "imageUrl is " +
+                        butterflyInfo.getImageUrl());
             }
-            Log.d("flag", flag.toString());
-            showInfo("Activity", "id is " +
-                    butterflyInfo.getId(), "name is " +
-                    butterflyInfo.getName(), "latinName is " +
-                    butterflyInfo.getLatinName(), "type is " +
-                    butterflyInfo.getType(), "feature is " +
-                    butterflyInfo.getFeature(), "area is " +
-                    butterflyInfo.getArea(), "rare is " +
-                    butterflyInfo.getRare(), "uniqueToChina is " +
-                    butterflyInfo.getUniqueToChina(), "imageUrl is " +
-                    butterflyInfo.getImageUrl());
+            return flag;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return flag;
+        return false;
     }
 
     private static void showInfo(String activity, String msg, String msg2, String msg3, String msg4, String msg5, String msg6, String msg7, String msg8, String msg9) {
@@ -174,3 +175,13 @@ public class HttpAction {
     }
 
 }
+
+
+//            butterflyInfo.setLatinName(butterflyInfo.getLatinName());
+//            butterflyInfo.setFeature(butterflyInfo.getFeature());
+//            butterflyInfo.setArea(butterflyInfo.getArea());
+//            butterflyInfo.setId(butterflyInfo.getId());
+//            butterflyInfo.setProtect(butterflyInfo.getProtect());
+//            butterflyInfo.setRare(butterflyInfo.getRare());
+//            butterflyInfo.setImageUrl(butterflyInfo.getImageUrl());
+//            butterflyInfo.setUniqueToChina(butterflyInfo.getUniqueToChina());

@@ -15,7 +15,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.example.butterflyrecognition.MainActivity;
 import com.example.butterflyrecognition.R;
-import com.example.butterflyrecognition.db.ButterflyInfo;
+import com.example.butterflyrecognition.db.InfoDetail;
 
 import org.litepal.crud.DataSupport;
 
@@ -41,7 +41,7 @@ public class InfoActivity extends AppCompatActivity {
         setContentView(R.layout.info_layout);
 
         int id=getIntent().getIntExtra("butterflyNo",1);
-        ButterflyInfo butterflyInfo = DataSupport.find(ButterflyInfo.class, id);
+        InfoDetail butterflyInfo = DataSupport.find(InfoDetail.class, id);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_info);
         final CollapsingToolbarLayout collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.image_collapsing_toolbar);
@@ -65,15 +65,26 @@ public class InfoActivity extends AppCompatActivity {
         uniqueToChinatext = (TextView) findViewById(R.id.uniqueToChina);
 
 
-        nametext.setText(butterflyInfo.getName());
-        latinNametext.setText(butterflyInfo.getLatinName());
-        typetext.setText(butterflyInfo.getType());
-        featuretext.setText(butterflyInfo.getFeature());
-        areatext.setText(butterflyInfo.getArea());
-        protecttext.setText(butterflyInfo.getProtect());
-        raretext.setText(butterflyInfo.getRare());
-        uniqueToChinatext.setText(butterflyInfo.getUniqueToChina());
-        //        butterflypicture.setImageURI(Uri.parse(butterflyInfo.getImagePath()));
+        nametext.setText("中文学名:" + butterflyInfo.getName());
+        latinNametext.setText("拉丁学名:" + butterflyInfo.getLatinName());
+        typetext.setText("科属:" + butterflyInfo.getType());
+        featuretext.setText("识别特征:" + butterflyInfo.getFeature());
+        areatext.setText("地理分布:" + butterflyInfo.getArea());
+        if (butterflyInfo.getProtect() == 0) {
+            protecttext.setText("保护级别:非保护品种");
+        } else {
+            protecttext.setText("保护级别:保护品种");
+        }
+        if (butterflyInfo.getRare() == 0) {
+            raretext.setText("稀有级别:较常见");
+        } else {
+            raretext.setText("稀有级别:较稀有");
+        }
+        if (butterflyInfo.getUniqueToChina() == 0) {
+            uniqueToChinatext.setText("中国特有:分布广泛");
+        } else {
+            uniqueToChinatext.setText("中国特有:分布不广泛");
+        }
         Glide.with(this).load(butterflyInfo.getImagePath()).into(butterflypicture);
 
         fab_fruit_content.setOnClickListener(new View.OnClickListener() {

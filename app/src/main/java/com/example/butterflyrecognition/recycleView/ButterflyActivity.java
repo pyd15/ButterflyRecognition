@@ -2,6 +2,7 @@ package com.example.butterflyrecognition.recycleView;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -21,7 +22,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,7 +30,7 @@ import android.widget.Toast;
 
 import com.example.butterflyrecognition.R;
 import com.example.butterflyrecognition.Util.HttpAction;
-import com.example.butterflyrecognition.db.ButterflyInfo;
+import com.example.butterflyrecognition.db.InfoDetail;
 import com.example.butterflyrecognition.recycleView.indexBar.ButterflyInfo_copy;
 import com.example.butterflyrecognition.recycleView.search.HeaderAdapter;
 import com.example.butterflyrecognition.recycleView.search.RecyclerOnItemClickListener;
@@ -72,10 +72,15 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
      */
     private TextView mTvSideBarHint;
 
+    /**
+     * 显示进度条
+     */
+    private ProgressDialog progressDialog;
+
     private IntentFilter intentFilter;
     private NetworkChangeReciver networkChangeReciver;
 
-    List<ButterflyInfo> butterflyInfoList = new ArrayList<>();
+    List<InfoDetail> butterflyInfoList = new ArrayList<>();
     List<ButterflyInfo_copy> butterflyInfo_copyList = new ArrayList<>();
 
     @Override
@@ -112,11 +117,11 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
 
 
     private void  initButterfly() {
-        List<ButterflyInfo> list= DataSupport.findAll(ButterflyInfo.class);
+        List<InfoDetail> list = DataSupport.findAll(InfoDetail.class);
         butterflyInfoList.clear();
         butterflyInfo_copyList.clear();
         ButterflyInfo_copy butterflyInfo_copy;
-        for (ButterflyInfo butterflyInfo : list) {
+        for (InfoDetail butterflyInfo : list) {
             butterflyInfo_copy = new ButterflyInfo_copy();
             butterflyInfo_copy.setId(butterflyInfo.getId());
             butterflyInfo_copy.setName(butterflyInfo.getName());
@@ -128,17 +133,14 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
             butterflyInfo_copy.setImagePath(butterflyInfo.getImagePath());
             butterflyInfo_copy.setImageUrl(butterflyInfo.getImageUrl());
             butterflyInfo_copy.setUniqueToChina(butterflyInfo.getUniqueToChina());
-            Log.d("ButterflyInfo_copy", "id is " + butterflyInfo_copy.getId());
-            Log.d("ButterflyInfo_copy", "name is " + butterflyInfo_copy.getName());
-            Log.d("ButterflyInfo_copy", "ename is " + butterflyInfo_copy.getLatinName());
-            Log.d("ButterflyInfo_copy", "desc is " + butterflyInfo_copy.getFeature());
-            Log.d("ButterflyInfo_copy", "type is " + butterflyInfo_copy.getType());
-            Log.d("ButterflyInfo_copy", "image is " + butterflyInfo_copy.getImagePath());
+            //            Log.d("ButterflyInfo_copy", "id is " + butterflyInfo_copy.getId());
+            //            Log.d("ButterflyInfo_copy", "name is " + butterflyInfo_copy.getName());
+            //            Log.d("ButterflyInfo_copy", "ename is " + butterflyInfo_copy.getLatinName());
+            //            Log.d("ButterflyInfo_copy", "desc is " + butterflyInfo_copy.getFeature());
+            //            Log.d("ButterflyInfo_copy", "type is " + butterflyInfo_copy.getType());
+            //            Log.d("ButterflyInfo_copy", "image is " + butterflyInfo_copy.getImagePath());
             butterflyInfoList.add(butterflyInfo);
             butterflyInfo_copyList.add(butterflyInfo_copy);
-        }
-        for (int i = 0; i < butterflyInfo_copyList.size(); i++) {
-            Log.d("length", String.valueOf(butterflyInfo_copyList.get(i)));
         }
     }
 
@@ -357,8 +359,6 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-
-
     class NetworkChangeReciver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -371,10 +371,24 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
         }
     }
 
+    private void showProgressDialog() {
+        if (progressDialog == null) {
+            progressDialog = new ProgressDialog(ButterflyActivity.this);
+            progressDialog.setMessage("加载中...");
+            progressDialog.setCanceledOnTouchOutside(false);
+        }
+        progressDialog.show();
+    }
+
+    private void closeProgressDialog() {
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+        }
+    }
 
     @Override
     public void onItemClick(View view, int position) {
-        ButterflyInfo butterflyInfo = butterflyInfoList.get(position);
+        InfoDetail butterflyInfo = butterflyInfoList.get(position);
         Intent intent = new Intent(this,InfoActivity.class);
         intent.putExtra("butterflyNo", butterflyInfo.getId());
         startActivity(intent);

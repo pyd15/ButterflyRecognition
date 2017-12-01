@@ -17,13 +17,31 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    sourceSets {
+        main {
+            res.srcDirs =
+                    [
+                            'src/main/res/layout/fragement',
+                            'src/main/res/layout/recyclerview',
+                            'src/main/res/layout/search',
+                            'src/main/res/layout/info',
+                            'src/main/res/layout',
+                            'src/main/res'
+                    ]
+        }
+    }
 }
+
+
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+
+//    compile 'com.android.support:exifinterface:25.3.1'
+
     compile 'com.android.support:appcompat-v7:26.+'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'de.hdodenhof:circleimageview:2.2.0'
@@ -34,12 +52,10 @@ dependencies {
     compile 'org.litepal.android:core:1.6.0'
     compile 'com.miguelcatalan:materialsearchview:1.4.0'
     compile 'com.jakewharton:butterknife:8.8.1'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     compile 'com.squareup.okhttp3:okhttp:3.9.0'
     compile 'com.google.code.gson:gson:2.2.4'
-
     compile 'com.github.mcxtzhang:SwipeDelMenuLayout:V1.2.2'
-
     compile 'com.github.mcxtzhang:SuspensionIndexBar:V1.0.0'
     testCompile 'junit:junit:4.12'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 }

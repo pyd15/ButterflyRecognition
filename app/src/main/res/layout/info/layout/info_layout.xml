@@ -170,8 +170,7 @@
         app:layout_anchor="@id/appBar"
         app:layout_anchorGravity="bottom|end"
         android:tooltipText="首页"
-        android:src="@drawable/ic_comment"
-        android:tag="首页"
+        android:src="@drawable/share"
         />
 
 </android.support.design.widget.CoordinatorLayout>

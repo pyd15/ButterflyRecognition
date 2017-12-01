@@ -38,7 +38,7 @@ public class DBHelper {
     }
 
     //将ButterflyInfo实例存到数据库
-    public void saveButterfly(ButterflyInfo butterflyInfo) {
+    public void saveButterfly(InfoDetail butterflyInfo) {
         if (butterflyInfo!=null) {
             ContentValues values=new ContentValues();
             values.put("butterfly_id",butterflyInfo.getId());
@@ -52,12 +52,12 @@ public class DBHelper {
     }
 
     //从数据库读取蝴蝶信息
-    public List<ButterflyInfo> loadButterflyInfos() {
-        List<ButterflyInfo> list=new ArrayList<ButterflyInfo>();
+    public List<InfoDetail> loadButterflyInfos() {
+        List<InfoDetail> list = new ArrayList<InfoDetail>();
         Cursor cursor=db.query("ButterflyInfo", null, null, null, null, null, null);
         if (cursor.moveToFirst()) {
             do {
-                ButterflyInfo butterflyInfo=new ButterflyInfo();
+                InfoDetail butterflyInfo = new InfoDetail();
                 butterflyInfo.setId(cursor.getInt(cursor.getColumnIndex("id")));
                 butterflyInfo.setImageUrl(cursor.getString(cursor.getColumnIndex("imageUrl")));
                 butterflyInfo.setName(cursor.getString(cursor.getColumnIndex("butterflyInfo_name")));

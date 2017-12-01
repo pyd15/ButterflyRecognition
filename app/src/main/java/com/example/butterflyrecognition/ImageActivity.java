@@ -1,22 +1,26 @@
 package com.example.butterflyrecognition;
 
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.butterflyrecognition.fragment.ResultDialog;
 
 import java.io.FileNotFoundException;
 
@@ -26,7 +30,7 @@ import snackbar.SnackBarUtil;
  * Created by Dr.P on 2017/10/10.
  */
 
-public class ImageActivity extends AppCompatActivity {
+public class ImageActivity extends AppCompatActivity implements View.OnClickListener {
 
     //    @BindView(R.id.toolbar_image)
     //    Toolbar toolbar;
@@ -43,32 +47,73 @@ public class ImageActivity extends AppCompatActivity {
     //    @BindView(R.id.image_collapsing_toolbar)
     //    CollapsingToolbarLayout collapsingToolbarLayout;
 
+    Button cancelbtn;
+    Button use_photo;
+
     public static final String BUTTERFLY_NAME = "butterfly_image";
+
     public static final String BUTTERFLY_IMAGE_ID = "butterfly_image_id";
-    public static final String IMAGE_URI = "imagePath";
+    public static final String IMAGE_URI_CAMERA = "imagePath_camera";
+    public static final String IMAGE_URI_ALBUM = "imagePath_Album";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        //        if (Build.VERSION.SDK_INT >= 21) {
+        //            View decorView = getWindow().getDecorView();
+        //            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+        //            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        //        }
         setContentView(R.layout.activity_image);
 
         ImageView butterflyImageView = (ImageView) findViewById(R.id.butterfly_image_view);
         TextView butterflyContentText = (TextView) findViewById(R.id.butterfly_content_text);
-        LinearLayout hintLayout = (LinearLayout) findViewById(R.id.hint_layout);
-        Intent intent = getIntent();
-        Uri imageUri = Uri.parse(intent.getStringExtra(IMAGE_URI));
-        Log.d("imageUri_ImageActivity", imageUri.toString());
+        //        LinearLayoLinearLayout hintLayout = (LinearLayout) findViewById(R.id.hint_layout);ut hintLayout = (LinearLayout) findViewById(R.id.hint_layout);
+        FrameLayout hintLayout = (FrameLayout) findViewById(R.id.hint_layout);
 
+        cancelbtn = (Button) findViewById(R.id.cancel);
+        use_photo = (Button) findViewById(R.id.use_photo);
+        cancelbtn.setOnClickListener(this);
+        use_photo.setOnClickListener(this);
+
+        Intent intent = getIntent();
+        String image_camera = null;
+        String image_album = null;
+        Uri imageUri1 = null;
+        if (intent.getStringExtra(IMAGE_URI_CAMERA) != null) {
+            image_camera = intent.getStringExtra(IMAGE_URI_CAMERA);
+            imageUri1 = Uri.parse(image_camera);
+            Log.d("image_camera", image_camera);
+        }
+        if (intent.getStringExtra(IMAGE_URI_ALBUM) != null) {
+            image_album = intent.getStringExtra(IMAGE_URI_ALBUM);
+            Log.d("image_album", image_album);
+        }
+        //        Uri imageUri2 = Uri.parse(image_camera);
+        //        Log.d("image_album", image_album);
+        //        Log.d("path", image_camera);
         //                Glide.with(this).load(getImagePath(imageUri,null)).into(butterflyImageView);
 
-
-        try {
-            ////            Bitmap bitmap = BitmapFactory.decodeFile(imageUri.toString());
-            Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
-            butterflyImageView.setImageBitmap(bitmap);//将裁剪后的照片显示出来
-        } catch (FileNotFoundException e) {
-            Log.d("FileNotFound", imageUri.toString());
+        if (image_camera != null) {
+            try {
+                Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri1));
+                butterflyImageView.setImageBitmap(bitmap);//将裁剪后的照片显示出来
+            } catch (FileNotFoundException e) {
+                Log.d("image1FileNotFound", imageUri1.toString());
+            }
+        } else if (image_album != null) {
+            Bitmap bitmap = BitmapFactory.decodeFile(image_album);
+            butterflyImageView.setImageBitmap(bitmap);
+            //            try {
+            //
+            //                Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri2));
+            //                butterflyImageView.setImageBitmap(bitmap);//将裁剪后的照片显示出来
+            //            } catch (FileNotFoundException e) {
+            //                            Log.d("image2FileNotFound", imageUri2.toString());
+            //            }
+        } else {
+            Toast.makeText(this, "Failed to get image!", Toast.LENGTH_SHORT).show();
         }
 
         String butterflyContent = "双指移动并缩放一只蝴蝶至虚线框内";
@@ -96,7 +141,30 @@ public class ImageActivity extends AppCompatActivity {
                 snackbar.dismiss();
             }
         });
-        snackbar.show();
+        //        snackbar.show();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.cancel:
+                onBackPressed();
+                break;
+            case R.id.use_photo:
+                //                replaceFragment(new AnotherFragment());
+                ResultDialog resultDialog = new ResultDialog(ImageActivity.this);
+                resultDialog.setCancelable(false);
+                resultDialog.show();
+                break;
+        }
+    }
+
+    private void replaceFragment(Fragment fragment) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.hint_layout, fragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
     @Override
@@ -115,18 +183,5 @@ public class ImageActivity extends AppCompatActivity {
         finish();
         overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
         super.onBackPressed();
-    }
-
-    private String getImagePath(Uri uri, String selection) {
-        String path = null;
-        //通过Uri和selection获取真实的图片路径
-        Cursor cursor = getContentResolver().query(uri, null, selection, null, null);
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
-            }
-            cursor.close();
-        }
-        return path;
     }
 }

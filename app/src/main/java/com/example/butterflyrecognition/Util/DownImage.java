@@ -25,14 +25,11 @@ public class DownImage extends AsyncTask {
 
     @Override
     protected Object doInBackground(Object[] params) {
-        String url = (String) params[0];
+        String url = "http://120.78.72.153:8080" + params[0];
         String fileName = url.substring(url.lastIndexOf("/"));
         String[] strings = fileName.split("/");
         String directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
         File imageFile=new File(directory+fileName);
-//        File imageFile = new File(fileName);
-//        File imageFile = new File(directory + "/"+strings[1]);
-//        Bitmap bitmap = null;
         if (imageFile.exists()) {
             Log.d("ImagePath","图片已存在！");
             return imageFile.getPath();

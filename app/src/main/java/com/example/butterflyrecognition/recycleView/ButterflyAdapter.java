@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.example.butterflyrecognition.R;
 import com.example.butterflyrecognition.Util.DownImage;
 import com.example.butterflyrecognition.db.ButterflyInfo;
+import com.example.butterflyrecognition.db.InfoDetail;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -24,7 +25,7 @@ import java.util.concurrent.ExecutionException;
  */
 
 public class ButterflyAdapter extends RecyclerView.Adapter<ButterflyAdapter.ViewHolder> {
-    private List<ButterflyInfo> myButterflyList;
+    private List<InfoDetail> myButterflyList;
     Context context;
     ButterflyInfo butterflyInfo;
 
@@ -43,7 +44,7 @@ public class ButterflyAdapter extends RecyclerView.Adapter<ButterflyAdapter.View
         }
     }
 
-    public ButterflyAdapter(List<ButterflyInfo> butterflyList)
+    public ButterflyAdapter(List<InfoDetail> butterflyList)
     {
         myButterflyList = butterflyList;
     }
@@ -59,7 +60,7 @@ public class ButterflyAdapter extends RecyclerView.Adapter<ButterflyAdapter.View
             @Override
             public void onClick(View view) {
                 int postiton=holder.getAdapterPosition();
-                ButterflyInfo butterflyInfo = myButterflyList.get(postiton);
+                InfoDetail butterflyInfo = myButterflyList.get(postiton);
                 Intent intent = new Intent(context,InfoActivity.class);
                 intent.putExtra("butterflyNo", butterflyInfo.getId());
                 context.startActivity(intent);
@@ -70,7 +71,7 @@ public class ButterflyAdapter extends RecyclerView.Adapter<ButterflyAdapter.View
             @Override
             public void onClick(View view) {
                 int postiton=holder.getAdapterPosition();
-                ButterflyInfo butterflyInfo = myButterflyList.get(postiton);
+                InfoDetail butterflyInfo = myButterflyList.get(postiton);
                 Toast.makeText(view.getContext(),"you clicked text "+ butterflyInfo.getName(),Toast.LENGTH_SHORT).show();
             }
         });
@@ -79,7 +80,7 @@ public class ButterflyAdapter extends RecyclerView.Adapter<ButterflyAdapter.View
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        ButterflyInfo butterflyInfo = myButterflyList.get(position);
+        InfoDetail butterflyInfo = myButterflyList.get(position);
         String imagePath=butterflyInfo.getImagePath();
         Log.d("ButterflyAdapter", butterflyInfo.getImagePath());
         if (imagePath == null) {

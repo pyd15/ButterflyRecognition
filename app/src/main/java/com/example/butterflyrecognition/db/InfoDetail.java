@@ -1,23 +1,22 @@
-package com.example.butterflyrecognition.recycleView.indexBar;
+package com.example.butterflyrecognition.db;
 
 import com.google.gson.annotations.SerializedName;
-import com.mcxtzhang.indexlib.IndexBar.bean.BaseIndexPinyinBean;
 
-import org.litepal.annotation.Column;
+import org.litepal.crud.DataSupport;
 
 /**
- * Created by Dr.P on 2017/11/12.
+ * Created by Dr.P on 2017/11/22.
  * runas /user:Dr.P "cmd /k"
  */
 
-public class ButterflyInfo_copy extends BaseIndexPinyinBean {
+public class InfoDetail extends DataSupport {
     @SerializedName("id")
     private int id;
 
     @SerializedName("image")
     private String imageUrl;
 
-    @Column(unique = true)
+    //    @Column(unique = true)
     @SerializedName("name")
     private String name;
 
@@ -43,15 +42,6 @@ public class ButterflyInfo_copy extends BaseIndexPinyinBean {
     private int uniqueToChina;
 
     private String imagePath;
-
-    private boolean isTop;//是否是最上面的 不需要被转化成拼音的
-
-    public ButterflyInfo_copy() {
-    }
-
-    public ButterflyInfo_copy(String name) {
-        this.name = name;
-    }
 
     public int getId() {
         return id;
@@ -101,9 +91,8 @@ public class ButterflyInfo_copy extends BaseIndexPinyinBean {
         this.id = id;
     }
 
-    public ButterflyInfo_copy setName(String name) {
+    public void setName(String name) {
         this.name = name;
-        return this;
     }
 
     public void setLatinName(String latinName) {
@@ -140,30 +129,5 @@ public class ButterflyInfo_copy extends BaseIndexPinyinBean {
 
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
-    }
-
-    public boolean isTop() {
-        return isTop;
-    }
-
-    public ButterflyInfo_copy setTop(boolean top) {
-        isTop = top;
-        return this;
-    }
-
-    @Override
-    public String getTarget() {
-        return name;
-    }
-
-    @Override
-    public boolean isNeedToPinyin() {
-        return !isTop;
-    }
-
-
-    @Override
-    public boolean isShowSuspension() {
-        return !isTop;
     }
 }
