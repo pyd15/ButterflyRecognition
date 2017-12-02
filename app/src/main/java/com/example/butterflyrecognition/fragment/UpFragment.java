@@ -7,8 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.butterflyrecognition.R;
-
 /**
  * Created by Dr.P on 2017/10/14.
  */
@@ -18,7 +16,8 @@ public class UpFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.up_fragment, container, false);
-        return view;
+        //        View view = inflater.inflate(R.layout.up_fragment, container, false);
+        //        return view;
+        return null;
     }
 }

@@ -17,19 +17,19 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    sourceSets {
-        main {
-            res.srcDirs =
-                    [
-                            'src/main/res/layout/fragement',
-                            'src/main/res/layout/recyclerview',
-                            'src/main/res/layout/search',
-                            'src/main/res/layout/info',
-                            'src/main/res/layout',
-                            'src/main/res'
-                    ]
-        }
-    }
+//    sourceSets {
+//        main {
+//            res.srcDirs =
+//                    [
+//                            'src/main/res/layout/fragement',
+//                            'src/main/res/layout/recyclerview',
+//                            'src/main/res/layout/search',
+//                            'src/main/res/layout/info',
+//                            'src/main/res/layout',
+//                            'src/main/res'
+//                    ]
+//        }
+//    }
 }
 
 

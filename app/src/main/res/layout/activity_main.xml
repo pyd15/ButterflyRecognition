@@ -18,7 +18,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
-            app:elevation="18dp">
+            android:elevation="28dp"
+            app:elevation="28dp">
 
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar_main"
@@ -28,7 +29,7 @@
                 android:theme="@style/AppTheme"
                 app:popupTheme="@style/Theme.AppCompat.Light"
                 app:layout_scrollFlags="scroll|enterAlways|snap"
-                android:elevation="10dp"
+                android:elevation="20dp"
                 >
 
                 <TextView
@@ -92,11 +93,6 @@
                     android:background="@drawable/bg_special_disease_circle"
                     android:text="选图"
                     />
-
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="dfa"/>
 
                 <Button
                     android:id="@+id/search"

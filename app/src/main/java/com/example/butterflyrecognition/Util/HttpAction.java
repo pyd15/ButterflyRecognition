@@ -132,7 +132,6 @@ public class HttpAction {
             Gson gson = new Gson();
             ButterflyInfo butterflyInfo1 = gson.fromJson(jsonData, new TypeToken<ButterflyInfo>() {
             }.getType());
-            //            Log.e("imagebutterflyInfo1", butterflyInfo1.setToDefault());
             List<InfoDetail> butterflyInfoList = butterflyInfo1.infoDetailList;
             Connector.getDatabase();
             for (InfoDetail butterflyInfo : butterflyInfoList) {

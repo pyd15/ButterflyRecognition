@@ -10,14 +10,19 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.example.butterflyrecognition.MainActivity;
 import com.example.butterflyrecognition.R;
 import com.example.butterflyrecognition.db.InfoDetail;
+import com.example.butterflyrecognition.viewpage.GuardViewPager;
+import com.example.butterflyrecognition.viewpage.VPAdapter;
+import com.example.butterflyrecognition.viewpage.ViewPagerIndicator;
 
 import org.litepal.crud.DataSupport;
+
+import java.util.ArrayList;
 
 /**
  * Created by Dr.P on 2017/10/10.
@@ -35,6 +40,11 @@ public class InfoActivity extends AppCompatActivity {
     TextView raretext;
     TextView uniqueToChinatext;
 
+    //    private ViewPager vp;
+    private GuardViewPager vp;
+    private VPAdapter vpAdapter;
+    private LinearLayout ll;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +52,7 @@ public class InfoActivity extends AppCompatActivity {
 
         int id=getIntent().getIntExtra("butterflyNo",1);
         InfoDetail butterflyInfo = DataSupport.find(InfoDetail.class, id);
+        ArrayList<String> imageList = getIntent().getStringArrayListExtra("imageList");
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_info);
         final CollapsingToolbarLayout collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.image_collapsing_toolbar);
@@ -52,9 +63,13 @@ public class InfoActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
         collapsingToolbarLayout.setTitle(butterflyInfo.getName());
-        //        Glide.with(this).load(fruitImageId).into(fruitImageView);
 
-        butterflypicture = (ImageView) findViewById(R.id.buttefly_big_image);
+        //        butterflypicture = (ImageView) findViewById(R.id.buttefly_big_image);
+        vp = (GuardViewPager) findViewById(R.id.vp);
+        vpAdapter = new VPAdapter(this, imageList);
+        vp.setAdapter(vpAdapter);
+        ll = (LinearLayout) findViewById(R.id.ll);
+
         nametext = (TextView) findViewById(R.id.name);
         latinNametext = (TextView) findViewById(R.id.latinName);
         typetext = (TextView) findViewById(R.id.type);
@@ -63,7 +78,6 @@ public class InfoActivity extends AppCompatActivity {
         protecttext = (TextView) findViewById(R.id.protect);
         raretext = (TextView) findViewById(R.id.rare);
         uniqueToChinatext = (TextView) findViewById(R.id.uniqueToChina);
-
 
         nametext.setText("中文学名:" + butterflyInfo.getName());
         latinNametext.setText("拉丁学名:" + butterflyInfo.getLatinName());
@@ -85,7 +99,7 @@ public class InfoActivity extends AppCompatActivity {
         } else {
             uniqueToChinatext.setText("中国特有:分布不广泛");
         }
-        Glide.with(this).load(butterflyInfo.getImagePath()).into(butterflypicture);
+        //        Glide.with(this).load(butterflyInfo.getImagePath()).into(butterflypicture);
 
         fab_fruit_content.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,6 +109,12 @@ public class InfoActivity extends AppCompatActivity {
                 overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
             }
         });
+
+        if (imageList.size() > 1) {
+            vp.setOnPageChangeListener(new ViewPagerIndicator(this, vp, ll, imageList.size()));
+        } else {
+            vp.toggleSlide(false);//若该类蝴蝶只有一张图片则不进行切换显示
+        }
     }
 
     @Override

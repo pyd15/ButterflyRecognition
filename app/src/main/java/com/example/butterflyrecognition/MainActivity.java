@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private ProgressDialog progressDialog;
 
-    String address = "http://120.78.72.153:8080/ButterflySystem/getInfo.do";
+    String address = "http://120.78.72.153:8080/btf/getInfo.do";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,14 +79,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             toolbar.setElevation(10);
         }
         setSupportActionBar(toolbar);
-        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
-
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.drawable.drawmenu);
         }
+        actionBar.setElevation(100f);
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+
 
         navigationView.setCheckedItem(R.id.nav_call);//将call菜单设置为默认选中
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
@@ -162,33 +163,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //启动相机
                 Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                startActivityForResult(intent, TAKE_PHOTO);
+                startActivityForResult(intent, CROP_PHOTO_FORCAMERA);
                 break;
             case R.id.choose_from_album:
                 //                choosePhoto.startAnimation(scaleAnimation);//设置点击后缩放效果
-                //                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                //                    //动态申请WRITE_EXTERNAL_STORAGE权限
-                //                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-                //                } else {
-                    openAlbum();
-                //                }
+                openAlbum();
                 break;
             case R.id.search:
                 //                search.startAnimation(scaleAnimation);//设置点击后缩放效果
-                //                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                //                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-                //                } else {
-                //                    SharedPreferences preferences = getSharedPreferences("data", MODE_PRIVATE);
-                //                    boolean flag = preferences.getBoolean("info", false);
-                //                    if (!flag) {
-                try {
-                    queryFromServer();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                SharedPreferences preferences = getSharedPreferences("data", MODE_PRIVATE);
+                boolean flag = preferences.getBoolean("info", false);
+                if (!flag) {
+                    try {
+                        queryFromServer();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else {
                 }
-                //                    } else {
-                //                    }
-                //                }
                 Intent intent1 = new Intent(MainActivity.this, ButterflyActivity.class);
                 startActivity(intent1);
                 //                实现淡入淡出的效果1
@@ -201,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //                if(version > 5 ){
                 //设置跳转动画
                 //                    overridePendingTransition(R.anim.in_from_right_to_center, R.anim.out_from_center_to_left);
-                //                }
+                //        }
                 break;
             default:
                 break;
@@ -269,21 +261,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Log.d("image below4.4", imageUri1.toString());
                         imageUri = imageUri1;
                     }
-                    Intent intent = new Intent("com.android.camera.action.CROP");
+                    //                    Intent intent = new Intent("com.android.camera.action.CROP");
+                    Intent intent = new Intent(this, ImageActivity.class);
                     intent.setDataAndType(imageUri1, "image/*");
                     //                    intent.setType("image/*");
-                    intent.putExtra("crop", true);//允许裁剪
+                    intent.putExtra("crop", true);//允许裁剪/
                     intent.putExtra("scale", true);//允许缩放
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri1);//设置图片的输出位置
-                    startActivityForResult(intent, CROP_PHOTO_FORALBUM);//跳转至处理相册中选取的图片
+                    if (imagePath != null) {
+                        intent.putExtra("imagePath_Album", imagePath);
+                        Log.d("imagePath_Album", imagePath);
+                    } else {
+                        intent.putExtra("imagePath_Album", imageUri1.getPath());
+                        Log.d("imagePath_Album_Uri", imageUri.getPath());
+                    }
+                    //                    intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri1);//设置图片的输出位置
+                    //                    startActivityForResult(intent, CROP_PHOTO_FORALBUM);//跳转至处理相册中选取的图片
+                    startActivity(intent);
                 }
                 break;
             case CROP_PHOTO_FORCAMERA:
-                Log.d("imageUri_CROP_FORCAMERA", imageUri.toString());
                 Intent intent2 = new Intent(this, ImageActivity.class);
-                //                intent.putExtra("scale", true);
                 intent2.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
                 intent2.putExtra("imagePath_camera", imageUri.toString());
+                //                intent2.putExtra("imagePath", imageUri.toString());
                 startActivity(intent2);
 
                 break;
@@ -291,9 +291,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Intent intent1 = new Intent(this, ImageActivity.class);
                 if (imagePath != null) {
                     intent1.putExtra("imagePath_Album", imagePath);
+                    //                    intent1.putExtra("imagePath", imagePath);
                     Log.d("imagePath_Album", imagePath);
                 } else {
                     intent1.putExtra("imagePath_Album", imageUri1.getPath());
+                    //                    intent1.putExtra("imagePath", imageUri1.getPath());
                     Log.d("imagePath_Album_Uri", imageUri.getPath());
                 }
                 startActivity(intent1);

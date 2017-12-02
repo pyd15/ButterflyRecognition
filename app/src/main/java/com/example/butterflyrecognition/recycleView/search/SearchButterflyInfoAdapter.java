@@ -51,7 +51,13 @@ public class SearchButterflyInfoAdapter extends RecyclerView.Adapter<SearchButte
             public void onClick(View view) {
                 int postiton=holder.getAdapterPosition();
                 ButterflyInfo_copy butterflyInfo = myButterflyList.get(postiton);
+                String[] images = butterflyInfo.getImagePath().split(",");
+                ArrayList<String> imageList = new ArrayList<String>();
+                for (int i = 0; i < images.length; i++) {
+                    imageList.add(images[i]);
+                }
                 Intent intent = new Intent(context,InfoActivity.class);
+                intent.putStringArrayListExtra("imageList", imageList);
                 intent.putExtra("butterflyNo", butterflyInfo.getId());
                 context.startActivity(intent);
                 Activity activity = (Activity) context;

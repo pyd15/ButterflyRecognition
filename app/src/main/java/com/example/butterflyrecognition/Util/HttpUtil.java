@@ -1,15 +1,23 @@
 package com.example.butterflyrecognition.Util;
 
 
+import android.net.Uri;
+import android.util.Log;
+
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 
 public class HttpUtil {
 
@@ -57,6 +65,55 @@ public class HttpUtil {
                 .url(address)
                 .build();
         client.newCall(request).enqueue(callback);
+    }
+
+    public static void sendOkHttpPicture(final String uploadUrl, final String localPath, final okhttp3.Callback callback) throws IOException {
+        //修改各种 Timeout
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(600, TimeUnit.SECONDS)
+                .readTimeout(200, TimeUnit.SECONDS)
+                .writeTimeout(600, TimeUnit.SECONDS)
+                .build();
+        //        String fileName = localPath.substring(localPath.lastIndexOf("/"));
+        Log.d("image_file", localPath);
+        Log.d("image_file", Uri.parse(localPath).getPath());
+        //        if (localPath instanceof Uri) {
+        //
+        //        }
+        File file = new File(Uri.parse(localPath).getPath());
+
+        MediaType imageType = MediaType.parse("image/jpg; charset=utf-8");
+        RequestBody fileBody = RequestBody.create(imageType, file);
+        RequestBody body = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                ///                .addPart(
+                //                        Headers.of("Content-Disposition", "form-data; name=\"file\"; filename=\"" + fileName + "\""),
+                //                        RequestBody.create(MEDIA_TYPE_PNG, file))
+                //                .addPart(
+                //                        Headers.of("Content-Disposition", "form-data; name=\"imagetype\""),
+                //                        RequestBody.create(null, imageType))
+                //                .addPart(
+                //                        Headers.of("Content-Disposition", "form-data; name=\"userphone\""),
+                //                        RequestBody.create(null, userPhone))
+
+                .addFormDataPart("file", "head_image", fileBody)
+                //                .addFormDataPart("imagetype", imageType)
+                //                .addFormDataPart("userphone", userPhone)
+                .build();
+        //                = RequestBody.create(imageType, file);
+        Request request = new Request.Builder()
+                .url(uploadUrl)
+                .post(body)
+                .build();
+        client.newCall(request).enqueue(callback);
+
+
+        //如果不需要可以直接写成 OkHttpClient client = new OkHttpClient.Builder().build();
+
+        //        Response response = client
+        //                .newCall(request)
+        //                .execute();
+        //        return response.body().string() + ":" + response.code();
     }
 
     /**

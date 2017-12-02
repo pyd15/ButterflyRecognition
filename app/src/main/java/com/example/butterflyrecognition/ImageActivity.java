@@ -9,7 +9,9 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -20,10 +22,22 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.example.butterflyrecognition.Util.HttpUtil;
 import com.example.butterflyrecognition.fragment.ResultDialog;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import snackbar.SnackBarUtil;
 
 /**
@@ -49,12 +63,22 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
 
     Button cancelbtn;
     Button use_photo;
+    ImageView butterflyImageView;
+    Toolbar toolbar;
+    TextView butterflyContentText;
+
+    String image_camera = null;
+    String image_album = null;
+    String uploadUrl = "http://120.78.72.153:8080/btf/identify.do";
+
+    boolean camera_flag = false;
+    boolean album_flag = false;
 
     public static final String BUTTERFLY_NAME = "butterfly_image";
-
     public static final String BUTTERFLY_IMAGE_ID = "butterfly_image_id";
     public static final String IMAGE_URI_CAMERA = "imagePath_camera";
     public static final String IMAGE_URI_ALBUM = "imagePath_Album";
+    public static final String IMAGE = "imagePath";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +91,15 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
         //        }
         setContentView(R.layout.activity_image);
 
-        ImageView butterflyImageView = (ImageView) findViewById(R.id.butterfly_image_view);
-        TextView butterflyContentText = (TextView) findViewById(R.id.butterfly_content_text);
+        toolbar = (Toolbar) findViewById(R.id.toolbar_image);
+        setSupportActionBar(toolbar);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
+        butterflyImageView = (ImageView) findViewById(R.id.butterfly_image_view);
+        butterflyContentText = (TextView) findViewById(R.id.butterfly_content_text);
         //        LinearLayoLinearLayout hintLayout = (LinearLayout) findViewById(R.id.hint_layout);ut hintLayout = (LinearLayout) findViewById(R.id.hint_layout);
         FrameLayout hintLayout = (FrameLayout) findViewById(R.id.hint_layout);
 
@@ -78,8 +109,6 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
         use_photo.setOnClickListener(this);
 
         Intent intent = getIntent();
-        String image_camera = null;
-        String image_album = null;
         Uri imageUri1 = null;
         if (intent.getStringExtra(IMAGE_URI_CAMERA) != null) {
             image_camera = intent.getStringExtra(IMAGE_URI_CAMERA);
@@ -99,12 +128,35 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
             try {
                 Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri1));
                 butterflyImageView.setImageBitmap(bitmap);//将裁剪后的照片显示出来
+                //                Glide.with(this).load(imageUri1).into(butterflyImageView);
+                //                Glide.with(this).load(image_album).override(700,870).fitCenter().into(butterflyImageView);
+                camera_flag = true;
             } catch (FileNotFoundException e) {
                 Log.d("image1FileNotFound", imageUri1.toString());
             }
         } else if (image_album != null) {
             Bitmap bitmap = BitmapFactory.decodeFile(image_album);
-            butterflyImageView.setImageBitmap(bitmap);
+            //            butterflyImageView.setImageBitmap(bitmap);
+            Glide.with(this).load(image_album).into(butterflyImageView);
+            //            Glide.with(this).load(image_album).override(1700,1870).into(butterflyImageView);
+            album_flag = true;
+            // new BitmapImageViewTarget(butterflyImageView) {
+            //                @Override
+            //                protected void setResource(Bitmap resource) {
+            //                    super.setResource(resource);
+            //                    int width = resource.getWidth();
+            //                    int height = resource.getHeight();
+            //                    //获取imageView的宽
+            //                    int imageViewWidth=butterflyImageView.getWidth();
+            //                    //计算缩放比例
+            //                    float sy= (float) (imageViewWidth* 0.1)/(float) (width * 0.1);
+            //                    //计算图片等比例放大后的高
+            //                    int imageViewHeight= (int) (height * sy);
+            //                    ViewGroup.LayoutParams params =butterflyImageView.getLayoutParams();
+            //                    params.height = imageViewHeight;
+            //                    .setLayoutParams(params);
+            //                }
+            //            });
             //            try {
             //
             //                Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri2));
@@ -152,12 +204,113 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                 break;
             case R.id.use_photo:
                 //                replaceFragment(new AnotherFragment());
-                ResultDialog resultDialog = new ResultDialog(ImageActivity.this);
-                resultDialog.setCancelable(false);
-                resultDialog.show();
+                //                ResultDialog resultDialog = new ResultDialog(ImageActivity.this);
+                //                resultDialog.setCancelable(false);
+                //                resultDialog.show();
+                if (camera_flag) {
+                    try {
+                        HttpUtil.sendOkHttpPicture(uploadUrl, image_camera, new Callback() {
+                            @Override
+                            public void onResponse(Call call, Response response) throws IOException {
+                                final String responeData = response.body().string();
+                                Log.d("imageUpload-response", responeData);
+                                if (responeData != null) {
+                                    ImageActivity.this.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(ImageActivity.this, "Upload Picture succeed! Name:" + responeData, Toast.LENGTH_LONG).show();
+                                            ResultDialog resultDialog = new ResultDialog(ImageActivity.this);
+                                            resultDialog.setCancelable(false);
+                                            resultDialog.show();
+                                        }
+                                    });
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call call, IOException e) {
+
+                                ImageActivity.this.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(ImageActivity.this, "Upload Picture failed!", Toast.LENGTH_LONG).show();
+                                    }
+                                });
+                            }
+                        });
+                    } catch (IOException e) {
+                    }
+                } else if (album_flag) {
+                    try {
+                        HttpUtil.sendOkHttpPicture(uploadUrl, image_album, new Callback() {
+                            @Override
+                            public void onResponse(Call call, Response response) throws IOException {
+                                final String responeData = response.body().string();
+                                Log.d("imageUpload-response", responeData);
+                                if (responeData != null) {
+                                    ImageActivity.this.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(ImageActivity.this, "Upload Picture succeed! Name:" + responeData, Toast.LENGTH_LONG).show();
+                                            ResultDialog resultDialog = new ResultDialog(ImageActivity.this);
+                                            resultDialog.setCancelable(false);
+                                            resultDialog.show();
+                                        }
+                                    });
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call call, IOException e) {
+                                ImageActivity.this.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(ImageActivity.this, "Upload Picture failed!", Toast.LENGTH_LONG).show();
+                                    }
+                                });
+                            }
+                        });
+                    } catch (IOException e) {
+                    }
+                }
                 break;
         }
     }
+
+    /**
+     * @param mediaType MediaType
+     * @param uploadUrl put请求地址
+     * @param localPath 本地文件路径
+     * @return 响应的结果 和 HTTP status code
+     * @throws IOException
+     */
+    public String put(MediaType mediaType, String uploadUrl, String localPath) throws IOException {
+        File file = new File(localPath);
+        RequestBody body = RequestBody.create(mediaType, file);
+        Request request = new Request.Builder()
+                .url(uploadUrl)
+                .put(body)
+                .build();
+        //修改各种 Timeout
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(600, TimeUnit.SECONDS)
+                .readTimeout(200, TimeUnit.SECONDS)
+                .writeTimeout(600, TimeUnit.SECONDS)
+                .build();
+        //如果不需要可以直接写成 OkHttpClient client = new OkHttpClient.Builder().build();
+
+        Response response = client
+                .newCall(request)
+                .execute();
+        return response.body().string() + ":" + response.code();
+    }
+
+    //上传JPG图片
+    public String putImg(String uploadUrl, String localPath) throws IOException {
+        MediaType imageType = MediaType.parse("image/jpg; charset=utf-8");
+        return put(imageType, uploadUrl, localPath);
+    }
+
 
     private void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -181,7 +334,7 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void onBackPressed() {
         finish();
-        overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
+        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
         super.onBackPressed();
     }
 }
