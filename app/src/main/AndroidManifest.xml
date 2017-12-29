@@ -37,8 +37,10 @@
         <activity
             android:name=".ImageActivity"
             android:label=""
-            android:launchMode="singleInstance"
-            android:theme="@style/ImageActivityTheme">
+            android:launchMode="singleTop"
+            android:theme="@style/ImageActivityTheme"
+            >
+            <!--android:theme="@style/ImageActivityTheme"-->
             >
         </activity>
         <activity
@@ -56,6 +58,7 @@
         </activity>
         <activity android:name=".view.ScaleActivity">
         </activity>
+        <activity android:name=".view.ClipImageActivity"/>
     </application>
 
 </manifest>

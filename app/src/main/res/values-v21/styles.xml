@@ -2,7 +2,7 @@
 <resources>
 
     <style name="ImageActivityTheme" parent="AppTheme">
-        <item name="android:statusBarColor">#A9A9A9</item>
+        <item name="android:statusBarColor">#00889a</item>
     </style>
     <style name="InfoActivityTheme" parent="AppTheme">
         <item name="android:statusBarColor">@android:color/transparent</item>

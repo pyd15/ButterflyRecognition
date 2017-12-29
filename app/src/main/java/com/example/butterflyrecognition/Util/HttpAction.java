@@ -1,5 +1,6 @@
 package com.example.butterflyrecognition.Util;
 
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.example.butterflyrecognition.db.ButterflyInfo;
@@ -9,6 +10,7 @@ import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.litepal.crud.DataSupport;
 import org.litepal.tablemanager.Connector;
 
 import java.io.BufferedReader;
@@ -31,6 +33,8 @@ import okhttp3.Response;
 
 public class HttpAction {
 
+    private SharedPreferences sp;
+    private static SharedPreferences.Editor editor;
 
     private void sendRequestWithHttpURLConnection() {
         // 开启线程来发起网络请求
@@ -134,14 +138,23 @@ public class HttpAction {
             }.getType());
             List<InfoDetail> butterflyInfoList = butterflyInfo1.infoDetailList;
             Connector.getDatabase();
+            List<InfoDetail> nameList = DataSupport.select("name").find(InfoDetail.class);
+            for (InfoDetail info : nameList) {
+                Log.d("name", info.getName());
+            }
+            int i = 0;
             for (InfoDetail butterflyInfo : butterflyInfoList) {
                 butterflyInfo.setImageUrl("http://120.78.72.153:8080" + butterflyInfo.getImageUrl());
                 butterflyInfo.setImagePath((String) new DownImage().execute(butterflyInfo.getImageUrl()).get());
                 Log.d("FilePath", butterflyInfo.getImagePath());
-                butterflyInfo.save();
-                if (butterflyInfo.save()) {
-                    flag = true;
+                if (nameList.get(i).getName() != butterflyInfo.getName()) {
+                    flag = butterflyInfo.save();
+                    i++;
                 }
+                //                editor = getSharedPreferences("com_example_butterfly_recognition_data", MODE_PRIVATE).edit();
+                //                if (butterflyInfo.save()) {
+                //                    flag = butterflyInfo.save();
+                //                }
                 Log.d("flag", flag.toString());
                 showInfo("Activity", "id is " +
                         butterflyInfo.getId(), "name is " +

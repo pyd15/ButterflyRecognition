@@ -22,6 +22,8 @@ import com.example.butterflyrecognition.recycleView.InfoActivity;
 
 import org.litepal.crud.DataSupport;
 
+import java.util.ArrayList;
+
 /**
  * Created by Dr.P on 2017/11/28.
  * runas /user:Dr.P "cmd /k"
@@ -34,10 +36,13 @@ public class ResultDialog extends BaseDialog {
             R.drawable.ic_delete, R.drawable.ic_done, R.drawable.ic_settings,
             R.drawable.ic_menu};//图片数据
 
+    private String clipImagePath;
+
     private OnClickListener mListener;
 
-    public ResultDialog(Context context) {
+    public ResultDialog(Context context, String clipImagePath) {
         super(context);
+        this.clipImagePath = clipImagePath;
         mCreateView = initView();
     }
 
@@ -54,8 +59,8 @@ public class ResultDialog extends BaseDialog {
 
     private View initView() {
         //        int num=mTexts.length;
-        int num = 1;
-        int number = 1;//一行显示的数量 //最外面的布局
+        int num = 2;
+        int number = 2;//一行显示的数量 //最外面的布局
         LinearLayout group = new LinearLayout(mContext);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -99,8 +104,9 @@ public class ResultDialog extends BaseDialog {
                 params.bottomMargin = 10 * mDensity;
                 item.setLayoutParams(params);
                 //                item.setBounds(50, 50);//设置图片的宽高
-                InfoDetail infoDetail = DataSupport.find(InfoDetail.class, 1);
-                Bitmap bitmap = BitmapFactory.decodeFile(infoDetail.getImagePath());
+                //                InfoDetail infoDetail = DataSupport.find(InfoDetail.class, 1);
+                //                Bitmap bitmap = BitmapFactory.decodeFile(infoDetail.getImagePath());
+                Bitmap bitmap = BitmapFactory.decodeFile(clipImagePath);
                 BitmapDrawable top = new BitmapDrawable(bitmap);
                 //                Drawable top = mContext.getResources().getDrawable(mImgs[i]);
                 item.setCompoundDrawablesWithIntrinsicBounds(null, top, null, null);//给DrawableTop设置图片
@@ -149,6 +155,13 @@ public class ResultDialog extends BaseDialog {
             ResultDialog.this.cancel();
             Intent intent = new Intent(getContext(), InfoActivity.class);
             intent.putExtra("butterflyNo", 1);
+            InfoDetail infoDetail = DataSupport.find(InfoDetail.class, 1);
+            String[] images = infoDetail.getImagePath().split(",");
+            ArrayList<String> imageList = new ArrayList<String>();
+            for (int i = 0; i < images.length; i++) {
+                imageList.add(images[i]);
+            }
+            intent.putExtra("imageList", imageList);
             mContext.startActivity(intent);
             //            if(mListener!=null){
             //                mListener.OnClick(v,mPosition);//调用自定义接口, TODO（分享在调用界面实现分享功能）

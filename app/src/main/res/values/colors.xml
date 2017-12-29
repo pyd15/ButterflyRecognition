@@ -12,4 +12,6 @@
     <!--primarydark #303F9F -->
 
     <color name="partTranslucent">#39000000</color>
+
+    <color name="viewfinder_mask">#B2000000</color>
 </resources>

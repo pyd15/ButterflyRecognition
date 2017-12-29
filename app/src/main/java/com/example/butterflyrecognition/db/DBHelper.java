@@ -58,7 +58,7 @@ public class DBHelper {
         if (cursor.moveToFirst()) {
             do {
                 InfoDetail butterflyInfo = new InfoDetail();
-                butterflyInfo.setId(cursor.getInt(cursor.getColumnIndex("id")));
+                butterflyInfo.setId(cursor.getInt(cursor.getColumnIndex("b_id")));
                 butterflyInfo.setImageUrl(cursor.getString(cursor.getColumnIndex("imageUrl")));
                 butterflyInfo.setName(cursor.getString(cursor.getColumnIndex("butterflyInfo_name")));
                 butterflyInfo.setLatinName(cursor.getString(cursor.getColumnIndex("butterflyInfo_ename")));

@@ -24,7 +24,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
@@ -46,12 +45,30 @@ import okhttp3.Response;
 
 /**
  * Created by Dr.P on 2017/10/10.
+ * 2017/12/22
+ * 待优化问题：
+ * 1.识别图片界面：
+ * 加上标题栏较好（完成）
+ * 图片最好填充整个屏幕，被遮挡部分通过手指拖动查看
+ * 识别结果对话框的美化，且受到的识别数据应存储起来以方便查看详细结果后返回识别界面再次查看（已解决）
+ * 底部按钮的美化
+ * 拍照或选图的图片的加载速度（将图片压缩一下应该能提高效率）
+ * 增加一个分享识别结果的功能（保存屏幕截图分享即可）
+ * 2.整个应用的图标设计和美化
+ * 3.主界面三个按钮的触摸反馈
+ * 4.图片相关匹配率前五的列表（可能要做）
+ * 5.搜索界面：
+ * 搜索栏过滤的优化，目前问题：添加对拉丁名的过滤以实现对拉丁名的匹配搜索
+ * 下拉刷新：获取数据后先和数据库中内容比较，没有的才添加，多余的删除（未解决）
+ * 6.不同分辨率屏幕间适配
+ * 7.第一次使用时的引导界面
+ * 8.滑动菜单中各项子菜单的具体内容
  */
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     public static final int TAKE_PHOTO = 1;
     public static final int CHOOSE_PHOTO = 2;
-    public static final int CROP_PHOTO_FORCAMERA = 3;
+    public static final int CROP_PHOTO_FORCAMERA = 5;
     public static final int CROP_PHOTO_FORALBUM = 4;
     private Uri imageUri = null;
     Uri imageUri1 = null;
@@ -65,8 +82,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button search;
 
     private ProgressDialog progressDialog;
+    private SharedPreferences sp;
+    private SharedPreferences.Editor editor;
 
     String address = "http://120.78.72.153:8080/btf/getInfo.do";
+    boolean readFlag = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,13 +96,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         toolbar.setTitle("");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            toolbar.setElevation(10);
+            toolbar.setElevation(20);
         }
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(R.drawable.drawmenu);
+            actionBar.setHomeAsUpIndicator(R.drawable.menu6);
         }
         actionBar.setElevation(100f);
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -171,29 +191,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.search:
                 //                search.startAnimation(scaleAnimation);//设置点击后缩放效果
-                SharedPreferences preferences = getSharedPreferences("data", MODE_PRIVATE);
-                boolean flag = preferences.getBoolean("info", false);
+                SharedPreferences preferences = getSharedPreferences("com_example_butterfly_recognition_data", MODE_PRIVATE);
+                boolean flag = preferences.getBoolean("info_changed", false);
                 if (!flag) {
                     try {
                         queryFromServer();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                } else {
                 }
-                Intent intent1 = new Intent(MainActivity.this, ButterflyActivity.class);
-                startActivity(intent1);
-                //                实现淡入淡出的效果1
-                //                overridePendingTransition(R.anim.splash_screen_fade, R.anim.splash_screen_hold);
-                //                实现淡入淡出的效果2
-                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                //                由左向右滑入的效果
-                //                overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
-                //                int version = android.os.Build.VERSION.SDK_INT;
-                //                if(version > 5 ){
-                //设置跳转动画
-                //                    overridePendingTransition(R.anim.in_from_right_to_center, R.anim.out_from_center_to_left);
-                //        }
+                if (readFlag) {
+                    Intent intent1 = new Intent(MainActivity.this, ButterflyActivity.class);
+                    intent1.putExtra("activity", MainActivity.class.getSimpleName());
+                    startActivity(intent1);
+                    //                实现淡入淡出的效果1
+                    //                overridePendingTransition(R.anim.splash_screen_fade, R.anim.splash_screen_hold);
+                    //                实现淡入淡出的效果2
+                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                    //                由左向右滑入的效果
+                    //                overridePendingTransition(android.R.anim.slide_in_left,android.R.anim.slide_out_right);
+                    //                int version = android.os.Build.VERSION.SDK_INT;
+                    //                if(version > 5 ){
+                    //设置跳转动画
+                    //                    overridePendingTransition(R.anim.in_from_right_to_center, R.anim.out_from_center_to_left);
+                    //        }
+                }
                 break;
             default:
                 break;
@@ -231,17 +253,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case TAKE_PHOTO:
                 if (resultCode == RESULT_OK) {
                     //将拍得的照片裁剪后显示出来
-                    Intent intent = new Intent("com.android.camera.action.CROP");
-                    intent.setDataAndType(imageUri, "image/*");
-                    //                    intent.putExtra("aspectX", 1);
-                    //                    intent.putExtra("aspectY", 1);
-                    //裁剪的大小
-                    //                    intent.putExtra("outputX", 180);
-                    //                    intent.putExtra("outputY", 180);
-                    intent.putExtra("scale", true);
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                    intent.putExtra("imagePath_camera", imageUri);
-                    startActivityForResult(intent, CROP_PHOTO_FORCAMERA);
+                    //                    Intent intent = new Intent("com.android.camera.action.CROP");
+                    //                    intent.setDataAndType(imageUri, "image/*");
+                    //                    //                    intent.putExtra("aspectX", 1);
+                    //                    //                    intent.putExtra("aspectY", 1);
+                    //                    //裁剪的大小
+                    //                    //                    intent.putExtra("outputX", 180);
+                    //                    //                    intent.putExtra("outputY", 180);
+                    //                    intent.putExtra("scale", true);
+                    //                    intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                    //                    intent.putExtra("imagePath_camera", imageUri);
+                    //                    startActivityForResult(intent, CROP_PHOTO_FORCAMERA);
+                    Intent intent2 = new Intent(this, ImageActivity.class);
+                    intent2.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                    intent2.putExtra("imagePath_camera", imageUri.toString());
+                    //                intent2.putExtra("imagePath", imageUri.toString());
+                    startActivity(intent2);
                 }
                 break;
             case CHOOSE_PHOTO:
@@ -280,25 +307,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             case CROP_PHOTO_FORCAMERA:
-                Intent intent2 = new Intent(this, ImageActivity.class);
-                intent2.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                intent2.putExtra("imagePath_camera", imageUri.toString());
-                //                intent2.putExtra("imagePath", imageUri.toString());
-                startActivity(intent2);
+                //                if (resultCode != RESULT_OK)
+                //                    break;
+                //                else
+                if (resultCode == RESULT_OK) {
+                    Log.d("imagerequestcode_camera", String.valueOf(requestCode));
+                    Intent intent2 = new Intent(this, ImageActivity.class);
+                    intent2.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                    intent2.putExtra("imagePath_camera", imageUri.toString());
+                    //                intent2.putExtra("imagePath", imageUri.toString());
+                    startActivity(intent2);
+                }
 
                 break;
             case CROP_PHOTO_FORALBUM:
-                Intent intent1 = new Intent(this, ImageActivity.class);
-                if (imagePath != null) {
-                    intent1.putExtra("imagePath_Album", imagePath);
-                    //                    intent1.putExtra("imagePath", imagePath);
-                    Log.d("imagePath_Album", imagePath);
-                } else {
-                    intent1.putExtra("imagePath_Album", imageUri1.getPath());
-                    //                    intent1.putExtra("imagePath", imageUri1.getPath());
-                    Log.d("imagePath_Album_Uri", imageUri.getPath());
+                if (resultCode == RESULT_OK) {
+                    Log.d("imagerequestcode_album", String.valueOf(requestCode));
+                    Intent intent1 = new Intent(this, ImageActivity.class);
+                    if (imagePath != null) {
+                        intent1.putExtra("imagePath_Album", imagePath);
+                        //                    intent1.putExtra("imagePath", imagePath);
+                        Log.d("imagePath_Album", imagePath);
+                    } else {
+                        intent1.putExtra("imagePath_Album", imageUri1.getPath());
+                        //                    intent1.putExtra("imagePath", imageUri1.getPath());
+                        Log.d("imagePath_Album_Uri", imageUri.getPath());
+                    }
+                    startActivity(intent1);
                 }
-                startActivity(intent1);
                 break;
             default:
                 break;
@@ -323,7 +359,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 imagePath = getImagePath(contentUri, null);
             }
         } else if ("content".equalsIgnoreCase(uri.getScheme())) {
-            //若为contetn类型的url，则使用普通方式处理
+            //若为content类型的url，则使用普通方式处理
             imagePath = getImagePath(uri, null);
         } else if ("file".equalsIgnoreCase(uri.getScheme())) {
             //若为file类型的uri，直接获取图片路径即可
@@ -356,32 +392,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return path;
     }
 
-    private void queryFromServer() throws InterruptedException {
+    private boolean queryFromServer() throws InterruptedException {
         showProgressDialog();
         HttpUtil.sendOkHttpRequest(address, new Callback() {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String responeData = response.body().string();
-                boolean result = false;
                 try {
-                    result = HttpAction.parseJSONWithGSON(responeData);
+                    readFlag = HttpAction.parseJSONWithGSON(responeData);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                if (result) {
-                    MainActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            closeProgressDialog();
-                            SharedPreferences.Editor editor = getSharedPreferences("data", MODE_PRIVATE).edit();
-                            editor.putBoolean("info", true);
-                            editor.apply();
-                            //                            Toast.makeText(MainActivity.this, "Success!", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                editor = getSharedPreferences("com_example_butterfly_recognition_data", MODE_PRIVATE).edit();
+                if (readFlag) {
+                    editor.putBoolean("info_changed", true);
+                } else {
+                    editor.putBoolean("info_changed", false);
                 }
+                editor.apply();
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        closeProgressDialog();
+                    }
+                });
             }
 
             @Override
@@ -395,6 +431,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
             }
         });
+        //此处先使readFlag为true 日后还要根据服务器数据库的改动记录进行本地数据库的修改修改
+        return readFlag = true;
     }
 
     private void showProgressDialog() {
@@ -412,12 +450,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        //加载toolbar菜单文件
-        getMenuInflater().inflate(R.menu.toolbar, menu);
-        return true;
-    }
+    //    @Override
+    //    public boolean onCreateOptionsMenu(Menu menu) {
+    //        //加载toolbar菜单文件
+    //        getMenuInflater().inflate(R.menu.toolbar, menu);
+    //        return true;
+    //    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

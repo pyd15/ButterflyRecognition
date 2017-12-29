@@ -121,6 +121,9 @@ public class InfoActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
+                Intent intent = getIntent();
+                String activityName = intent.getStringExtra("activity");
+
                 finish();
                 overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
                 return true;

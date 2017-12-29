@@ -23,10 +23,12 @@ public class SearchButterflyInfoAdapter extends RecyclerView.Adapter<SearchButte
     Context context;
     ButterflyInfo butterflyInfo;
 
+    //    private List<ButterflyInfo_copy> myButterflyList;
     private List<ButterflyInfo_copy> myButterflyList;
 
 
     public SearchButterflyInfoAdapter(List<ButterflyInfo_copy> butterflyList) {
+        //public SearchButterflyInfoAdapter(List<InfoDetail> butterflyList) {
         this.myButterflyList = butterflyList;
     }
 
@@ -67,31 +69,10 @@ public class SearchButterflyInfoAdapter extends RecyclerView.Adapter<SearchButte
         return holder;
     }
 
-//    @Override
-//    public void onBindViewHolder(ViewHolder holder, int position) {
-//        ButterflyInfo butterflyInfo = myButterflyList.get(position);
-//        String imagePath=butterflyInfo.getImagePath();
-//        Log.d("ButterflyAdapter", butterflyInfo.getImagePath());
-//        if (imagePath == null) {
-//            try {
-//                imagePath=(String)new DownImage().execute(butterflyInfo.getImageUrl()).get();
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            } catch (ExecutionException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        holder.butterflyname.setText(butterflyInfo.getName());
-//        holder.butterflyImage.setImageURI(Uri.parse(imagePath));
-//        holder.butterflylatinName.setText(butterflyInfo.getLatinName());
-    //    }s
-
     @Override
     public void onBindViewHolder(SearchButterflyInfoHolder holder, int position) {
         holder.bind(myButterflyList.get(position));
     }
-
-
 
     @Override
     public int getItemCount() {

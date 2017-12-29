@@ -1,20 +1,16 @@
 package com.example.butterflyrecognition.recycleView;
 
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
@@ -22,6 +18,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,6 +27,7 @@ import android.widget.Toast;
 
 import com.example.butterflyrecognition.R;
 import com.example.butterflyrecognition.Util.HttpAction;
+import com.example.butterflyrecognition.Util.HttpUtil;
 import com.example.butterflyrecognition.db.InfoDetail;
 import com.example.butterflyrecognition.recycleView.indexBar.ButterflyInfo_copy;
 import com.example.butterflyrecognition.recycleView.search.HeaderAdapter;
@@ -41,13 +39,18 @@ import com.miguelcatalan.materialsearchview.MaterialSearchView;
 
 import org.litepal.crud.DataSupport;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
-public class ButterflyActivity extends AppCompatActivity implements RecyclerOnItemClickListener.OnItemClickListener{
+public class ButterflyActivity extends AppCompatActivity implements RecyclerOnItemClickListener.OnItemClickListener {
 
     @BindView(R.id.toolbar_recycler_view)
     Toolbar toolbar;
@@ -59,7 +62,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
     SwipeRefreshLayout swipeRefreshLayout;
 
     private SearchButterflyInfoAdapter butterflyAdapter;
-//    ButterflyAdapter butterflyAdapter;
+    //    ButterflyAdapter butterflyAdapter;
 
     private SuspensionDecoration butterflyDecoration;
     /**
@@ -79,6 +82,8 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
 
     private IntentFilter intentFilter;
     private NetworkChangeReciver networkChangeReciver;
+
+    String address = "http://120.78.72.153:8080/btf/getInfo.do";
 
     List<InfoDetail> butterflyInfoList = new ArrayList<>();
     List<ButterflyInfo_copy> butterflyInfo_copyList = new ArrayList<>();
@@ -116,7 +121,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
     }
 
 
-    private void  initButterfly() {
+    private void initButterfly() {
         List<InfoDetail> list = DataSupport.findAll(InfoDetail.class);
         butterflyInfoList.clear();
         butterflyInfo_copyList.clear();
@@ -151,7 +156,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
     private void initRecyclerView() {
         initButterfly();
 
-        LinearLayoutManager layoutManager=new LinearLayoutManager(this);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
 
         recyclerView.setLayoutManager(layoutManager);
         butterflyAdapter = new SearchButterflyInfoAdapter(butterflyInfo_copyList);
@@ -159,7 +164,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
         HeaderAdapter adapter = new HeaderAdapter(butterflyAdapter);
         recyclerView.setAdapter(adapter);
         recyclerView.addItemDecoration(butterflyDecoration = new SuspensionDecoration(this, butterflyInfo_copyList));
-        recyclerView.addItemDecoration(new DividerItemDecoration(this,LinearLayoutManager.VERTICAL));
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
 
         //使用indexBar
         mTvSideBarHint = (TextView) findViewById(R.id.tvSideBarHint);//HintTextView
@@ -228,10 +233,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                if (ContextCompat.checkSelfPermission(ButterflyActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(ButterflyActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
-                }
-                ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+                ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
                 if (networkInfo != null && networkInfo.isAvailable()) {
                     refresh();
@@ -244,28 +246,54 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
     }
 
     private void refresh() {
-        new Thread(new Runnable() {
+        HttpUtil.sendOkHttpRequest(address, new Callback() {
             @Override
-            public void run() {
+            public void onResponse(Call call, Response response) throws IOException {
+                String responeData = response.body().string();
+                Log.d("Activity", responeData);
+                boolean result = false;
                 try {
-                    Thread.sleep(1500);
+                    result = HttpAction.parseJSONWithGSON(responeData);
+                    Log.d("loading", "loading!");
+                    Log.d("loading", String.valueOf(result));
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
                 }
-                runOnUiThread(new Runnable() {
+                if (result) {
+                    ButterflyActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            butterflyAdapter.notifyDataSetChanged();
+                            swipeRefreshLayout.setRefreshing(false);
+                            Toast.makeText(ButterflyActivity.this, "更新成功！", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    ButterflyActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //                            butterflyAdapter.notifyDataSetChanged();
+                            swipeRefreshLayout.setRefreshing(false);
+                            Toast.makeText(ButterflyActivity.this, "没有新数据！", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onFailure(Call call, IOException e) {
+                ButterflyActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        HttpAction.sendRequestWithOkHttp();
-                        //                        initButterfly();
-                        butterflyAdapter.notifyDataSetChanged();
+                        closeProgressDialog();
                         swipeRefreshLayout.setRefreshing(false);
-                        Toast.makeText(ButterflyActivity.this, "更新成功！", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ButterflyActivity.this, "Fail!", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
-        }).start();
+        });
     }
 
     @Override
@@ -277,6 +305,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
 
     /**
      * 筛选逻辑
+     *
      * @param butterflyinfos
      * @param query
      * @return
@@ -288,7 +317,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
         for (ButterflyInfo_copy butterflyinfo : butterflyinfos) {
             final String name = butterflyinfo.getName();
             final String latinName = butterflyinfo.getLatinName();
-            if (name.contains(query) ||  latinName.contains(query) ) {
+            if (name.contains(query) || latinName.contains(query)) {
                 filteredModelList.add(butterflyinfo);
             }
         }
@@ -316,7 +345,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
-                overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -332,7 +361,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
         } else {
             finish();
             //实现淡入淡出的切换效果
-            overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             super.onBackPressed();
         }
     }
@@ -362,7 +391,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
     class NetworkChangeReciver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+            ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
             if (networkInfo != null && networkInfo.isAvailable()) {
             } else {
@@ -389,7 +418,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
     @Override
     public void onItemClick(View view, int position) {
         InfoDetail butterflyInfo = butterflyInfoList.get(position);
-        Intent intent = new Intent(this,InfoActivity.class);
+        Intent intent = new Intent(this, InfoActivity.class);
         intent.putExtra("butterflyNo", butterflyInfo.getId());
         startActivity(intent);
     }

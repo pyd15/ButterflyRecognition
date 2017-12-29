@@ -2,7 +2,6 @@ package com.example.butterflyrecognition.viewpage;
 
 import android.content.Context;
 import android.support.v4.view.PagerAdapter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,11 +30,11 @@ public class VPAdapter extends PagerAdapter {
         //        imgs.add(R.mipmap.zy_28l);
         //        imgs.add(R.mipmap.zy_28q);
         //        imgs.add(R.mipmap.zy_28w);
-        Log.d("imageList", String.valueOf(imageList.size()));
+        //        Log.d("imageList", String.valueOf(imageList.size()));
         for (int i = 0; i < imageList.size(); i++) {
             imgs.add(imageList.get(i));
         }
-        Log.d("imgs", String.valueOf(imageList.size()));
+        //        Log.d("imgs", String.valueOf(imageList.size()));
     }
 
     @Override

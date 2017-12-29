@@ -2,6 +2,7 @@ package com.example.butterflyrecognition.db;
 
 import com.google.gson.annotations.SerializedName;
 
+import org.litepal.annotation.Column;
 import org.litepal.crud.DataSupport;
 
 /**
@@ -11,12 +12,12 @@ import org.litepal.crud.DataSupport;
 
 public class InfoDetail extends DataSupport {
     @SerializedName("id")
-    private int id;
+    private int b_id;
 
     @SerializedName("image")
     private String imageUrl;
 
-    //    @Column(unique = true)
+    @Column(unique = true)
     @SerializedName("name")
     private String name;
 
@@ -44,7 +45,7 @@ public class InfoDetail extends DataSupport {
     private String imagePath;
 
     public int getId() {
-        return id;
+        return b_id;
     }
 
     public String getImageUrl() {
@@ -88,7 +89,7 @@ public class InfoDetail extends DataSupport {
     }
 
     public void setId(int id) {
-        this.id = id;
+        this.b_id = id;
     }
 
     public void setName(String name) {
