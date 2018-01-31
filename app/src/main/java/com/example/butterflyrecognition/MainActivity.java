@@ -51,15 +51,16 @@ import okhttp3.Response;
  * 加上标题栏较好（完成）
  * 图片最好填充整个屏幕，被遮挡部分通过手指拖动查看
  * 识别结果对话框的美化，且受到的识别数据应存储起来以方便查看详细结果后返回识别界面再次查看（已解决）
- * 底部按钮的美化
- * 拍照或选图的图片的加载速度（将图片压缩一下应该能提高效率）
+ * 底部按钮的美化（已解决）
+ * 拍照或选图的图片的加载速度（已解决）
  * 增加一个分享识别结果的功能（保存屏幕截图分享即可）
  * 2.整个应用的图标设计和美化
  * 3.主界面三个按钮的触摸反馈
  * 4.图片相关匹配率前五的列表（可能要做）
  * 5.搜索界面：
- * 搜索栏过滤的优化，目前问题：添加对拉丁名的过滤以实现对拉丁名的匹配搜索
- * 下拉刷新：获取数据后先和数据库中内容比较，没有的才添加，多余的删除（未解决）
+ * 搜索栏过滤的优化，目前问题：添加对拉丁名的过滤以实现对拉丁名的匹配搜索（已解决）
+ * 下拉刷新：获取数据后先和数据库中内容比较，没有的才添加，多余的删除（部分解决，存在更新后界面未正确加载问题）
+ * 更新时某种蝴蝶无图片的问题、须更新data.txt文件
  * 6.不同分辨率屏幕间适配
  * 7.第一次使用时的引导界面
  * 8.滑动菜单中各项子菜单的具体内容
@@ -109,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         navigationView = (NavigationView) findViewById(R.id.nav_view);
 
 
-        navigationView.setCheckedItem(R.id.nav_call);//将call菜单设置为默认选中
+        //        navigationView.setCheckedItem(R.id.nav_call);//将call菜单设置为默认选中
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -123,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Toast.makeText(MainActivity.this, "#蝴蝶识别项目组#", Toast.LENGTH_SHORT).show();
                         break;
                     case R.id.nav_location:
-                        Toast.makeText(MainActivity.this, "#当前版本#-1.1", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "#当前版本#-1.5", Toast.LENGTH_SHORT).show();
                         break;
                     case R.id.nav_mail:
                         Toast.makeText(MainActivity.this, "#拍照或选图上传即可#", Toast.LENGTH_SHORT).show();
@@ -191,16 +192,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.search:
                 //                search.startAnimation(scaleAnimation);//设置点击后缩放效果
-                SharedPreferences preferences = getSharedPreferences("com_example_butterfly_recognition_data", MODE_PRIVATE);
-                boolean flag = preferences.getBoolean("info_changed", false);
-                if (!flag) {
-                    try {
-                        queryFromServer();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (readFlag) {
+                //                SharedPreferences preferences = getSharedPreferences("com_example_butterfly_recognition_data", MODE_PRIVATE);
+                //                boolean flag = preferences.getBoolean("info_changed", false);
+                //                if (!flag) {
+                //                    try {
+                //                        queryFromServer();
+                //                    } catch (InterruptedException e) {
+                //                        e.printStackTrace();
+                //                    }
+                //                }
+                //                if (readFlag) {
                     Intent intent1 = new Intent(MainActivity.this, ButterflyActivity.class);
                     intent1.putExtra("activity", MainActivity.class.getSimpleName());
                     startActivity(intent1);
@@ -215,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     //设置跳转动画
                     //                    overridePendingTransition(R.anim.in_from_right_to_center, R.anim.out_from_center_to_left);
                     //        }
-                }
+                //                }
                 break;
             default:
                 break;

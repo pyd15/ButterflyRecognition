@@ -16,11 +16,14 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.butterflyrecognition.MainActivity;
 import com.example.butterflyrecognition.R;
+import com.example.butterflyrecognition.Util.ImageUtil;
 import com.example.butterflyrecognition.db.InfoDetail;
 import com.example.butterflyrecognition.recycleView.InfoActivity;
 
 import org.litepal.crud.DataSupport;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
@@ -33,6 +36,7 @@ public class DIYDialog extends BaseDialog {
     //界面显示的数据
 
     private String clipImagePath;
+    private Context context;
     private int id = 1;
 
     private OnClickListener mListener;
@@ -52,7 +56,7 @@ public class DIYDialog extends BaseDialog {
         //设置Dialog背景透明效果，必须设置一个背景，否则会有系统的Dialog样式：外部白框
         this.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         setContentView(mCreateView);//添加视图布局
-        //        setContentView(R.layout.activity_diy);//添加视图布局
+        //        setContentView(R.layout.diy_dialog);//添加视图布局
 
         MyOnClickListener listener = new MyOnClickListener(0);
 
@@ -67,8 +71,17 @@ public class DIYDialog extends BaseDialog {
 
 
         InfoDetail infoDetail = DataSupport.find(InfoDetail.class, id);
-        Glide.with(mContext).load(infoDetail.getImagePath()).into(imageView);
-        imageView.setImageDrawable(mContext.getResources().getDrawable(R.drawable.night));
+        InputStream assetFile = null;
+        try {
+            assetFile = mContext.getAssets().open("btf/" + infoDetail.getName() + "0.jpg");
+            //            assetFile = context.getClass().getResourceAsStream("/assets/" + ButterflyActivity.images[1]);
+            //        Glide.with(mContext).load(getImagePaths(infoDetail).get(0)).into(imageView);
+            byte[] imagebyte = ImageUtil.getImageFromAsset(assetFile);
+            Glide.with(mCreateView.getContext()).load(imagebyte).into(imageView);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         name.setText(infoDetail.getName());
         latinName.setText(infoDetail.getLatinName());
         kind.setText(infoDetail.getType());
@@ -82,12 +95,21 @@ public class DIYDialog extends BaseDialog {
         setLayout();
 
 
-        Toast.makeText(mContext, "What the hell!!!", Toast.LENGTH_LONG).show();
+        //        Toast.makeText(mContext, "What the hell!!!", Toast.LENGTH_LONG).show();
     }
 
     private View initView() {
-        View view = getLayoutInflater().inflate(R.layout.activity_diy, null);
+        View view = getLayoutInflater().inflate(R.layout.diy_dialog, null);
         return view;
+    }
+
+    private ArrayList<String> getImagePaths(InfoDetail infoDetail) {
+        String[] images = infoDetail.getImagePath().split(",");
+        ArrayList<String> imageList = new ArrayList<String>();
+        for (int i = 1; i < images.length; i++) {
+            imageList.add(images[i]);
+        }
+        return imageList;
     }
 
     public class MyOnClickListener implements View.OnClickListener {
@@ -107,17 +129,16 @@ public class DIYDialog extends BaseDialog {
                     break;
                 case R.id.detail:
                     Intent intent = new Intent(getContext(), InfoActivity.class);
-                    intent.putExtra("butterflyNo", 1);
+                    intent.putExtra("butterflyNo", id);
                     intent.putExtra("activity", InfoActivity.class.getSimpleName());
-                    InfoDetail infoDetail = DataSupport.find(InfoDetail.class, 1);
-                    String[] images = infoDetail.getImagePath().split(",");
-                    ArrayList<String> imageList = new ArrayList<String>();
-                    for (int i = 0; i < images.length; i++) {
-                        imageList.add(images[i]);
-                    }
-                    intent.putExtra("imageList", imageList);
+                    InfoDetail infoDetail = DataSupport.find(InfoDetail.class, id);
+                    //                    String[] images = infoDetail.getImagePath().split(",");
+                    //                    ArrayList<String> imageList = new ArrayList<String>();
+                    //                    for (int i = 0; i < images.length; i++) {
+                    //                        imageList.add(images[i]);
+                    //                    }
+                    intent.putExtra("imageList", getImagePaths(infoDetail));
                     mContext.startActivity(intent);
-                    Toast.makeText(mContext, "detail", Toast.LENGTH_SHORT).show();
                     break;
                 case R.id.homepage:
                     Intent intent1 = new Intent(getContext(), MainActivity.class);
@@ -155,7 +176,7 @@ public class DIYDialog extends BaseDialog {
         WindowManager.LayoutParams params = this.getWindow().getAttributes();
         params.width = mScreenWidth;
         params.gravity = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;
-        ;//水平居中、底部
+        //水平居中、底部
         this.getWindow().setAttributes(params);
     }
 

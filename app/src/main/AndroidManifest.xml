@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
@@ -12,7 +13,9 @@
         android:icon="@mipmap/ic_launcher_round"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        >
+        <!--android:windowDrawsSystemBarBackgrounds="false"-->
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="com.example.butterflyrecognition.fileProvider"
@@ -38,14 +41,18 @@
             android:name=".ImageActivity"
             android:label=""
             android:launchMode="singleTop"
+            android:parentActivityName=".MainActivity"
             android:theme="@style/ImageActivityTheme"
+
             >
+
             <!--android:theme="@style/ImageActivityTheme"-->
             >
         </activity>
         <activity
             android:name=".recycleView.ButterflyActivity"
-            android:launchMode="singleInstance">
+            android:parentActivityName=".MainActivity"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH"/>
             </intent-filter>
@@ -55,8 +62,6 @@
             android:label=""
             android:launchMode="singleInstance"
             android:theme="@style/InfoActivityTheme">
-        </activity>
-        <activity android:name=".view.ScaleActivity">
         </activity>
         <activity android:name=".view.ClipImageActivity"/>
     </application>

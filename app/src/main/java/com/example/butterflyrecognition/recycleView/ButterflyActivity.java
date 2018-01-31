@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -28,6 +30,7 @@ import android.widget.Toast;
 import com.example.butterflyrecognition.R;
 import com.example.butterflyrecognition.Util.HttpAction;
 import com.example.butterflyrecognition.Util.HttpUtil;
+import com.example.butterflyrecognition.Util.SQLUtil;
 import com.example.butterflyrecognition.db.InfoDetail;
 import com.example.butterflyrecognition.recycleView.indexBar.ButterflyInfo_copy;
 import com.example.butterflyrecognition.recycleView.search.HeaderAdapter;
@@ -40,6 +43,7 @@ import com.miguelcatalan.materialsearchview.MaterialSearchView;
 import org.litepal.crud.DataSupport;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -76,17 +80,28 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
     private TextView mTvSideBarHint;
 
     /**
+     * 顶部首字母
+     */
+    private HeaderAdapter adapter;
+
+    /**
      * 显示进度条
      */
     private ProgressDialog progressDialog;
+    private SharedPreferences sp;
+    private SharedPreferences.Editor editor;
 
     private IntentFilter intentFilter;
     private NetworkChangeReciver networkChangeReciver;
 
-    String address = "http://120.78.72.153:8080/btf/getInfo.do";
+    private static boolean readFlag = false;
+    String address = "http://40.125.207.182:8080/getInfo.do";
 
     List<InfoDetail> butterflyInfoList = new ArrayList<>();
     List<ButterflyInfo_copy> butterflyInfo_copyList = new ArrayList<>();
+
+    private boolean netFlag = true;
+    public static String[] images = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,13 +109,43 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
         setContentView(R.layout.recycle_view);
 
         ButterKnife.bind(this);
+
+        //初始化资源文件
+        SQLUtil.createDatabase(getApplicationContext());
+        String jsonData = readAssetsTxt(getApplicationContext(), "data");
+        Log.i("data", jsonData);
+        sp = getSharedPreferences("com_example_butterfly_recognition_data", MODE_PRIVATE);
+        editor = getSharedPreferences("com_example_butterfly_recognition_data", MODE_PRIVATE).edit();
+        editor.putString("old_data", jsonData);
+        editor.apply();
+        //        assets=getAssets();
+        try {
+            //            images = assets.list("");//获取asset目录下所有文件
+            images = getAssets().list("btf");
+            for (String imageName :
+                    images) {
+                Log.d("image", imageName);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //        String oldData=sp.getString("old_data","1");
+        //        boolean flag = sp.getBoolean("info_changed", false);
+        //        Log.d("response_sp_old_data", oldData);
+        //        Log.d("response_sp_info", String.valueOf(flag));
+        //        if (!flag) {
+        //            try {
+        //                queryFromServer();
+        //            } catch (InterruptedException e) {
+        //                e.printStackTrace();
+        //            }
+        //        }
         initView();
 
         intentFilter = new IntentFilter();
         intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
         networkChangeReciver = new NetworkChangeReciver();
         registerReceiver(networkChangeReciver, intentFilter);
-
     }
 
     private void initView() {
@@ -138,12 +183,6 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
             butterflyInfo_copy.setImagePath(butterflyInfo.getImagePath());
             butterflyInfo_copy.setImageUrl(butterflyInfo.getImageUrl());
             butterflyInfo_copy.setUniqueToChina(butterflyInfo.getUniqueToChina());
-            //            Log.d("ButterflyInfo_copy", "id is " + butterflyInfo_copy.getId());
-            //            Log.d("ButterflyInfo_copy", "name is " + butterflyInfo_copy.getName());
-            //            Log.d("ButterflyInfo_copy", "ename is " + butterflyInfo_copy.getLatinName());
-            //            Log.d("ButterflyInfo_copy", "desc is " + butterflyInfo_copy.getFeature());
-            //            Log.d("ButterflyInfo_copy", "type is " + butterflyInfo_copy.getType());
-            //            Log.d("ButterflyInfo_copy", "image is " + butterflyInfo_copy.getImagePath());
             butterflyInfoList.add(butterflyInfo);
             butterflyInfo_copyList.add(butterflyInfo_copy);
         }
@@ -161,8 +200,9 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
         recyclerView.setLayoutManager(layoutManager);
         butterflyAdapter = new SearchButterflyInfoAdapter(butterflyInfo_copyList);
         recyclerView.setAdapter(butterflyAdapter);
-        HeaderAdapter adapter = new HeaderAdapter(butterflyAdapter);
+        adapter = new HeaderAdapter(butterflyAdapter);
         recyclerView.setAdapter(adapter);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addItemDecoration(butterflyDecoration = new SuspensionDecoration(this, butterflyInfo_copyList));
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
 
@@ -178,7 +218,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
                 .invalidate();
         butterflyAdapter.setDatas(butterflyInfo_copyList);
         if (butterflyInfo_copyList.size() < 5) {
-            mIndexBar.setVisibility(View.INVISIBLE);
+            mIndexBar.setVisibility(View.INVISIBLE);//若列表数目小于5则不显示索引栏
         }
 
         butterflyDecoration.setmDatas(butterflyInfo_copyList);
@@ -188,7 +228,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
      * init SearchView
      */
     private void initSearchView() {
-
+        searchView.setHint("请输入蝴蝶的中文名或拉丁名");
         searchView.setVoiceSearch(false);
         searchView.setCursorDrawable(R.drawable.custom_cursor);
         searchView.setEllipsize(true);
@@ -223,6 +263,25 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
     }
 
     /**
+     * init IndexBar
+     */
+    private void initIndexBar() {
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        mIndexBar.setmPressedShowTextView(mTvSideBarHint)//设置HintTextView
+                .setNeedRealIndex(true)//设置需要真实的索引
+                .setmLayoutManager(layoutManager);//设置RecyclerView的LayoutManager
+        mIndexBar.setmSourceDatas(butterflyInfo_copyList)//设置数据
+                .invalidate();
+        butterflyAdapter.setDatas(butterflyInfo_copyList);
+        if (butterflyInfo_copyList.size() < 5) {
+            mIndexBar.setVisibility(View.INVISIBLE);//若列表数目小于5则不显示索引栏
+        }
+
+        butterflyDecoration.setmDatas(butterflyInfo_copyList);
+
+    }
+
+    /**
      * init SwiperRefreshLayout
      */
     private void initSwipeRefreshLayout() {
@@ -245,31 +304,147 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
         });
     }
 
-    private void refresh() {
+    /**
+     * 读取assets下的txt文件，返回utf-8 String
+     *
+     * @param context
+     * @param fileName 不包括后缀
+     * @return
+     */
+    public static String readAssetsTxt(Context context, String fileName) {
+        try {
+            //Return an AssetManager instance for your application's package
+            InputStream is = context.getAssets().open(fileName + ".txt");
+            int size = is.available();
+            // Read the entire asset into a local byte buffer.
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            // Convert the buffer into a string.
+            String text = new String(buffer, "utf-8");
+            // Finally stick the string into the text view.
+            return text;
+        } catch (IOException e) {
+            // Should never happen!
+            //            throw new RuntimeException(e);
+            e.printStackTrace();
+        }
+        return "读取错误，请检查文件名";
+    }
+
+    private boolean queryFromServer() throws InterruptedException {
+        showProgressDialog();
         HttpUtil.sendOkHttpRequest(address, new Callback() {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String responeData = response.body().string();
-                Log.d("Activity", responeData);
-                boolean result = false;
+                editor = getSharedPreferences("com_example_butterfly_recognition_data", MODE_PRIVATE).edit();
+                editor.putString("old_data", responeData);
                 try {
-                    result = HttpAction.parseJSONWithGSON(responeData);
-                    Log.d("loading", "loading!");
-                    Log.d("loading", String.valueOf(result));
+                    readFlag = HttpAction.parseJSONWithGSON(responeData + "^+");
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                if (result) {
-                    ButterflyActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            butterflyAdapter.notifyDataSetChanged();
-                            swipeRefreshLayout.setRefreshing(false);
-                            Toast.makeText(ButterflyActivity.this, "更新成功！", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+
+                if (readFlag) {
+                    Log.d("name_read_Flag", String.valueOf(readFlag));
+                    editor.putBoolean("info_changed", true);
+                } else {
+                    editor.putBoolean("info_changed", false);
+                }
+                editor.apply();
+                ButterflyActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        closeProgressDialog();
+                        //                        initButterfly();
+                        butterflyAdapter.notifyDataSetChanged();
+                        //                        butterflyDecoration.notifyAll();
+                        initView();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Call call, IOException e) {
+                ButterflyActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        closeProgressDialog();
+                        Toast.makeText(ButterflyActivity.this, "Fail!", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+        //此处先使readFlag为true 日后还要根据服务器数据库的改动记录进行本地数据库的修改修改
+        return readFlag = true;
+    }
+
+    private void showProgressDialog() {
+        if (progressDialog == null) {
+            progressDialog = new ProgressDialog(ButterflyActivity.this);
+            progressDialog.setMessage("加载中...");
+            progressDialog.setCanceledOnTouchOutside(false);
+        }
+        progressDialog.show();
+    }
+
+    private void closeProgressDialog() {
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+        }
+    }
+
+    private void refresh() {
+        HttpUtil.sendOkHttpRequest(address, new Callback() {
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String responeData = response.body().string();
+                sp = getSharedPreferences("com_example_butterfly_recognition_data", MODE_PRIVATE);
+                String oldData = sp.getString("old_data", null);
+                Log.d("response_old", oldData);
+                Log.d("respone_new", responeData);
+                if (!responeData.equals(oldData)) {
+
+                    String handlerespone = handleResponse(oldData, responeData);
+                    Log.d("response_handle", handlerespone);
+
+                    boolean result = false;
+                    try {
+                        result = HttpAction.parseJSONWithGSON(handlerespone);
+                        Log.d("loading", String.valueOf(result));
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    if (result) {
+                        ButterflyActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                editor = getSharedPreferences("com_example_butterfly_recognition_data", MODE_PRIVATE).edit();
+                                editor.remove("old_data");
+                                editor.putString("old_data", responeData);
+                                editor.apply();
+                                //                                initButterfly();
+                                //                                butterflyAdapter.setDatas(butterflyInfo_copyList);
+                                //                                butterflyAdapter.notifyDataSetChanged();
+                                //                                adapter.notifyDataSetChanged();
+                                initRecyclerView();
+                                //                                initView();
+                                mIndexBar.setmSourceDatas(butterflyInfo_copyList)//设置数据
+                                        .invalidate();
+                                butterflyAdapter.setDatas(butterflyInfo_copyList);
+                                butterflyDecoration.setmDatas(butterflyInfo_copyList);
+                                //                                initIndexBar();
+                                //                                butterflyAdapter.notifyItemRangeInserted(0, butterflyInfo_copyList.size()-1);
+                                swipeRefreshLayout.setRefreshing(false);
+                                Toast.makeText(ButterflyActivity.this, "更新成功！", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
                 } else {
                     ButterflyActivity.this.runOnUiThread(new Runnable() {
                         @Override
@@ -296,6 +471,45 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
         });
     }
 
+    private String handleResponse(String oldData, String newData) {
+        String head = newData.substring(0, 35);
+        String oldInfo = oldData.substring(35, oldData.length() - 2);
+        String newInfo = newData.substring(35, newData.length() - 2);
+        String[] oldlist = oldInfo.split("(?<=\\}),(?=\\{)");
+        String[] newlist = newInfo.split("(?<=\\}),(?=\\{)");
+        //        Pattern pattern = Pattern.compile("\\{\\}");
+        //        Pattern p= Pattern.compile("ab.*c");
+        //        Matcher m=p.matcher(str);
+        //        while(m.find()){
+        //            System.out.println(m.group());
+        //        }
+        String result = "";
+        String finalResult = "";
+        Log.d("response_result", String.valueOf(oldlist.length));
+        Log.d("response_result", String.valueOf(newlist.length));
+        if (oldlist.length == newlist.length) {
+            for (int i = 0; i < newlist.length; i++) {
+                if (oldlist[i].equals(newlist[i])) {
+                    continue;
+                }
+                result = result + "," + newlist[i];
+            }
+            finalResult = head + result.substring(1, result.length()) + "]}" + "^=";
+        } else if (oldlist.length < newlist.length) {
+            for (int i = oldlist.length; i < newlist.length; i++) {
+                result = result + "," + newlist[i];
+            }
+            finalResult = head + result.substring(1, result.length()) + "]}" + "^+";
+        } else {
+            for (int i = newlist.length; i < oldlist.length; i++) {
+                result = result + "," + oldlist[i];
+            }
+            finalResult = head + result.substring(1, result.length()) + "]}" + "^-";
+        }
+        Log.d("response_result", finalResult);
+        return finalResult;
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -311,16 +525,20 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
      * @return
      */
     private List<ButterflyInfo_copy> filter(List<ButterflyInfo_copy> butterflyinfos, String query) {
-        query = query.toLowerCase();
+        //        Log.e("test","调用filter方法");
+        //        Log.e("test","butterflyinfos个数:"+butterflyinfos.size());
+        //        query = query.toLowerCase();
 
         final List<ButterflyInfo_copy> filteredModelList = new ArrayList<>();
         for (ButterflyInfo_copy butterflyinfo : butterflyinfos) {
             final String name = butterflyinfo.getName();
             final String latinName = butterflyinfo.getLatinName();
             if (name.contains(query) || latinName.contains(query)) {
+                //                Log.e("test_latinName", latinName);
                 filteredModelList.add(butterflyinfo);
             }
         }
+        //        Log.e("test","filteredModelList个数:"+filteredModelList.size());
         return filteredModelList;
     }
 
@@ -358,6 +576,7 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
     public void onBackPressed() {
         if (searchView.isSearchOpen()) {
             searchView.closeSearch();
+
         } else {
             finish();
             //实现淡入淡出的切换效果
@@ -397,21 +616,6 @@ public class ButterflyActivity extends AppCompatActivity implements RecyclerOnIt
             } else {
                 Toast.makeText(context, "无法连接至服务器，请稍后再试", Toast.LENGTH_SHORT).show();
             }
-        }
-    }
-
-    private void showProgressDialog() {
-        if (progressDialog == null) {
-            progressDialog = new ProgressDialog(ButterflyActivity.this);
-            progressDialog.setMessage("加载中...");
-            progressDialog.setCanceledOnTouchOutside(false);
-        }
-        progressDialog.show();
-    }
-
-    private void closeProgressDialog() {
-        if (progressDialog != null) {
-            progressDialog.dismiss();
         }
     }
 

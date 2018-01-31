@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <DevInfor>
     <!--
-    	说明：
+    	Info：
 
     	所有集成到您项目的平台都应该为其在表格中填写相对应的开发者信息，以新浪微博为例：
     	    <SinaWeibo

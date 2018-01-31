@@ -16,7 +16,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.butterflyrecognition.MainActivity;
-import com.example.butterflyrecognition.R;
 import com.example.butterflyrecognition.db.InfoDetail;
 import com.example.butterflyrecognition.recycleView.InfoActivity;
 
@@ -32,9 +31,9 @@ import java.util.ArrayList;
 public class ResultDialog extends BaseDialog {
     //界面显示的数据
     private String[] mTexts = {"QQ好友", "QQ空间", "微信好友", "微信朋友圈", "微信收藏", "新浪微博"};
-    private int[] mImgs = {R.drawable.ic_backup, R.drawable.ic_comment,
-            R.drawable.ic_delete, R.drawable.ic_done, R.drawable.ic_settings,
-            R.drawable.ic_menu};//图片数据
+    //    private int[] mImgs = {R.drawable.ic_backup, R.drawable.ic_comment,
+    //            R.drawable.ic_delete, R.drawable.ic_done, R.drawable.ic_settings,
+    //            R.drawable.ic_menu};//图片数据
 
     private String clipImagePath;
 

@@ -74,12 +74,8 @@ public class HttpUtil {
                 .readTimeout(200, TimeUnit.SECONDS)
                 .writeTimeout(600, TimeUnit.SECONDS)
                 .build();
-        //        String fileName = localPath.substring(localPath.lastIndexOf("/"));
         Log.d("image_file", localPath);
         Log.d("image_file", Uri.parse(localPath).getPath());
-        //        if (localPath instanceof Uri) {
-        //
-        //        }
         File file = new File(Uri.parse(localPath).getPath());
 
         MediaType imageType = MediaType.parse("image/jpg; charset=utf-8");

@@ -10,16 +10,31 @@
         <item name="android:listDivider">@drawable/divider</item>
         <item name="elevation">40dp</item>
         <item name="android:statusBarColor" tools:targetApi="lollipop">#00889a</item>
+        <!-- 透明标题栏 -->
     </style>
 
-    <style name="ImageActivityTheme" parent="AppTheme">
+    <style name="ImageActivityTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="elevation">40dp</item>
         <item name="android:statusBarColor" tools:targetApi="lollipop">#00889a</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <!--<item name="android:windowDrawsSystemBarBackgrounds" tools:targetApi="lollipop">false</item>-->
+        <!-- 透明标题栏 -->
+        <!--<item name="android:windowDrawsSystemBarBackgrounds">false</item>-->
+
+    </style>
+
+    <style name="InfoActivityTheme" parent="AppTheme">
+        <item name="android:statusBarColor" tools:targetApi="lollipop">@android:color/transparent
+        </item>
+        <!-- 透明标题栏 -->
+        <item name="android:windowTranslucentStatus">true</item>
     </style>
 
     <style name="SpecialActionBar" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="elevation">40dp</item>
         <item name="android:statusBarColor" tools:targetApi="lollipop">#00889a</item>
+        <!-- 透明标题栏 -->
+        <item name="android:windowTranslucentStatus" tools:targetApi="kitkat">true</item>
     </style>
 
     <!--动画-->
@@ -74,5 +89,14 @@
         <item name="android:textColorHint">#FCE4EC</item>
         <!-- Hint for edit text-->
         <item name="android:hint">@string/search_hint</item>
+    </style>
+
+    <!--自定义PopupWindow动画-->
+    <style name="diy_pop_win_anim_style">
+        <item name="android:windowEnterAnimation">@anim/push_bottom_in</item>
+        <!-- 指定显示的动画xml -->
+
+        <item name="android:windowExitAnimation">@anim/push_bottom_out</item>
+        <!-- 指定消失的动画xml -->
     </style>
 </resources>

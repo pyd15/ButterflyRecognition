@@ -415,7 +415,7 @@ public abstract class OnekeyShareThemeImpl implements PlatformActionListener, Ca
 				}
 			} break;
 			case 3: {
-				// 取消
+				// cancel
 				toast("ssdk_oks_share_canceled");
 			} break;
 		}

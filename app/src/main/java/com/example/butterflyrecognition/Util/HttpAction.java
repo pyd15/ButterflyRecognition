@@ -57,7 +57,7 @@ public class HttpAction {
                     while ((line = reader.readLine()) != null) {
                         response.append(line);
                     }
-//                    showResponse(response.toString());
+                    //                    showResponse(response.toString());
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
@@ -99,7 +99,7 @@ public class HttpAction {
                 }
             }
         }).start();
-//        Log.d("Flagout", flag[0].toString());
+        //        Log.d("Flagout", flag[0].toString());
     }
 
 
@@ -117,7 +117,7 @@ public class HttpAction {
                 String protect = jsonObject.getString("protect");
                 String rare = jsonObject.getString("rare");
                 String uniqueToChina = jsonObject.getString("uniqueToChina");
-                int id=jsonObject.getInt("id");
+                int id = jsonObject.getInt("id");
                 showInfo("MainActivity", "id is " +
                         id, "name is " + name, "latinName is " +
                         latinName, "type is " + type, "feature is " +
@@ -133,45 +133,109 @@ public class HttpAction {
     public static boolean parseJSONWithGSON(String jsonData) throws ExecutionException, InterruptedException {
         try {
             Boolean flag = false;
+            Log.d("response-jsonData", jsonData);
+            String msg = jsonData.substring(jsonData.length() - 1, jsonData.length());
             Gson gson = new Gson();
-            ButterflyInfo butterflyInfo1 = gson.fromJson(jsonData, new TypeToken<ButterflyInfo>() {
+            //            Log.d("name-realData", realData[0]+"\n"+realData[1]);
+            //            ButterflyInfo butterflyInfo1 = gson.fromJson(realData[0], new TypeToken<ButterflyInfo>() {
+            ButterflyInfo butterflyInfo1 = gson.fromJson(jsonData.substring(0, jsonData.length() - 2), new TypeToken<ButterflyInfo>() {
             }.getType());
             List<InfoDetail> butterflyInfoList = butterflyInfo1.infoDetailList;
-            Connector.getDatabase();
-            List<InfoDetail> nameList = DataSupport.select("name").find(InfoDetail.class);
-            for (InfoDetail info : nameList) {
-                Log.d("name", info.getName());
-            }
-            int i = 0;
-            for (InfoDetail butterflyInfo : butterflyInfoList) {
-                butterflyInfo.setImageUrl("http://120.78.72.153:8080" + butterflyInfo.getImageUrl());
-                butterflyInfo.setImagePath((String) new DownImage().execute(butterflyInfo.getImageUrl()).get());
-                Log.d("FilePath", butterflyInfo.getImagePath());
-                if (nameList.get(i).getName() != butterflyInfo.getName()) {
-                    flag = butterflyInfo.save();
-                    i++;
-                }
-                //                editor = getSharedPreferences("com_example_butterfly_recognition_data", MODE_PRIVATE).edit();
-                //                if (butterflyInfo.save()) {
-                //                    flag = butterflyInfo.save();
-                //                }
-                Log.d("flag", flag.toString());
-                showInfo("Activity", "id is " +
-                        butterflyInfo.getId(), "name is " +
-                        butterflyInfo.getName(), "latinName is " +
-                        butterflyInfo.getLatinName(), "type is " +
-                        butterflyInfo.getType(), "feature is " +
-                        butterflyInfo.getFeature(), "area is " +
-                        butterflyInfo.getArea(), "rare is " +
-                        butterflyInfo.getRare(), "uniqueToChina is " +
-                        butterflyInfo.getUniqueToChina(), "imageUrl is " +
-                        butterflyInfo.getImageUrl());
+
+            if (msg.equals("+")) {
+                flag = InsertSQL(butterflyInfoList);
+            } else if (msg.equals("-")) {
+                flag = DeleteSQL(butterflyInfoList);
+            } else if (msg.equals("=")) {
+                flag = UpdateSQL(butterflyInfoList);
+            } else {
+                Log.d("sqlerror", "No match!");
             }
             return flag;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+    private static boolean InsertSQL(List<InfoDetail> butterflyInfoList) throws ExecutionException, InterruptedException {
+        boolean flag = false;
+
+        Connector.getDatabase();
+        for (InfoDetail butterflyInfo : butterflyInfoList) {
+            Log.d("name-insert", butterflyInfo.getName());
+            butterflyInfo.setImageUrl(butterflyInfo.getImageUrl());
+            butterflyInfo.setImagePath((String) new DownImage(butterflyInfo).execute(butterflyInfo.getImageUrl()).get());
+            Log.d("FilePath", butterflyInfo.getImagePath());
+            flag = butterflyInfo.save();
+            showInfo("Activity", "id is " +
+                    butterflyInfo.getId(), "name is " +
+                    butterflyInfo.getName(), "latinName is " +
+                    butterflyInfo.getLatinName(), "type is " +
+                    butterflyInfo.getType(), "feature is " +
+                    butterflyInfo.getFeature(), "area is " +
+                    butterflyInfo.getArea(), "rare is " +
+                    butterflyInfo.getRare(), "uniqueToChina is " +
+                    butterflyInfo.getUniqueToChina(), "imageUrl is " +
+                    butterflyInfo.getImageUrl());
+        }
+        return flag;
+    }
+
+    private static boolean DeleteSQL(List<InfoDetail> butterflyInfoList) {
+        boolean flag = false;
+        Connector.getDatabase();
+
+        //        List<InfoDetail> nameList = DataSupport.select("name").find(InfoDetail.class);
+        for (InfoDetail butterflyInfo : butterflyInfoList) {
+            Log.d("name-delete", butterflyInfo.getName());
+            List<InfoDetail> oneInfo = DataSupport.where("name=?", butterflyInfo.getName()).find(InfoDetail.class);
+            //            int deleteCount= DataSupport.delete(InfoDetail.class,oneInfo.get)
+            Log.d("name-oneinfo", oneInfo.get(0).getId() + " " + oneInfo.get(0).getName());
+            oneInfo.get(0).delete();
+            //            DataSupport.deleteAll(InfoDetail.class, "name=?" , butterflyInfo.getName());
+            flag = true;
+        }
+        return flag;
+    }
+
+    private static boolean UpdateSQL(List<InfoDetail> butterflyInfoList) throws ExecutionException, InterruptedException {
+        boolean flag = false;
+        Connector.getDatabase();
+        List<InfoDetail> nameList = DataSupport.select("name").find(InfoDetail.class);
+        for (InfoDetail info : nameList) {
+            Log.d("name", info.getName());
+        }
+        int i = 0;
+        for (InfoDetail butterflyInfo : butterflyInfoList) {
+
+            //            Log.d("FilePath", butterflyInfo.getImagePath());
+            if (nameList.size() > 0) {
+                if (nameList.get(i).getName() == butterflyInfo.getName()) {
+                    Log.d("name-update", butterflyInfo.getName());
+                    butterflyInfo.setImageUrl(butterflyInfo.getImageUrl());
+                    butterflyInfo.setImagePath((String) new DownImage(butterflyInfo).execute(butterflyInfo.getImageUrl()).get());
+                    i++;
+                }
+            }
+            flag = butterflyInfo.save();
+            //                editor = getSharedPreferences("com_example_butterfly_recognition_data", MODE_PRIVATE).edit();
+            //                if (butterflyInfo.save()) {
+            //                    flag = butterflyInfo.save();
+            //                }
+            //            Log.d("flag", flag);
+            showInfo("Activity", "id is " +
+                    butterflyInfo.getId(), "name is " +
+                    butterflyInfo.getName(), "latinName is " +
+                    butterflyInfo.getLatinName(), "type is " +
+                    butterflyInfo.getType(), "feature is " +
+                    butterflyInfo.getFeature(), "area is " +
+                    butterflyInfo.getArea(), "rare is " +
+                    butterflyInfo.getRare(), "uniqueToChina is " +
+                    butterflyInfo.getUniqueToChina(), "imageUrl is " +
+                    butterflyInfo.getImageUrl());
+        }
+        return flag;
     }
 
     private static void showInfo(String activity, String msg, String msg2, String msg3, String msg4, String msg5, String msg6, String msg7, String msg8, String msg9) {

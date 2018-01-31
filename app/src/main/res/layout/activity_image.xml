@@ -2,25 +2,26 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/image_ll"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
+    <!--<android.support.design.widget.CollapsingToolbarLayout
+        android:id="@+id/image_collapsing_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:theme="@style/SpecialActionBar"
+        android:fitsSystemWindows="true"
+        app:contentScrim="?attr/colorPrimary"
+        app:layout_scrollFlags="scroll|exitUntilCollapsed">-->
+
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appBar"
         android:layout_width="match_parent"
-        android:layout_height="470dp"
+        android:layout_height="?attr/actionBarSize"
         android:fitsSystemWindows="true">
-
-        <android.support.design.widget.CollapsingToolbarLayout
-            android:id="@+id/image_collapsing_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="470dp"
-            android:theme="@style/SpecialActionBar"
-            android:fitsSystemWindows="true"
-            app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
             <!-- <FrameLayout
                  android:layout_width="match_parent"
@@ -35,9 +36,9 @@
                 android:layout_height="?attr/actionBarSize"
                 android:background="#00889a"
                 android:fitsSystemWindows="true"
-                android:theme="@style/ImageActivityTheme"
-                app:popupTheme="@style/Theme.AppCompat.Light"
-                app:layout_collapseMode="pin"/>
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+                app:layout_collapseMode="pin">
 
             <TextView
                 android:id="@+id/first_page"
@@ -49,11 +50,9 @@
                 android:textColor="#ffffff"
                 />
 
-            <com.example.butterflyrecognition.view.clip.ClipImageLayout
-                android:id="@+id/butterfly_image_view"
-                android:layout_width="match_parent"
-                android:layout_height="470dp"
-                android:fitsSystemWindows="true"/>
+            </android.support.v7.widget.Toolbar>
+    </android.support.design.widget.AppBarLayout>
+
 
             <!--            <FrameLayout
                             android:layout_width="match_parent"
@@ -83,58 +82,80 @@
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin"/>-->
 
-        </android.support.design.widget.CollapsingToolbarLayout>
-    </android.support.design.widget.AppBarLayout>
+    <!--</android.support.design.widget.CollapsingToolbarLayout>-->
+
+
+    <com.example.butterflyrecognition.view.clip.ClipImageLayout
+        android:id="@+id/butterfly_image_view"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:fitsSystemWindows="true"/>
 
     <FrameLayout
         android:id="@+id/hint_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="fill_horizontal">
+        android:background="#00889a"
+        android:gravity="fill_horizontal"
+        android:fitsSystemWindows="true">
 
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <android.support.v7.widget.CardView
+            android:layout_height="match_parent"
+            android:fitsSystemWindows="true">
+
+            <LinearLayout
+                android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:layout_marginBottom="15dp"
-                android:layout_marginLeft="15dp"
-                android:layout_marginRight="15dp"
-                android:layout_marginTop="15dp"
-                app:cardCornerRadius="4dp">
+                android:layout_height="match_parent"
+                android:fitsSystemWindows="true">
+
+                <android.support.v7.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="85dp"
+                    android:layout_marginBottom="15dp"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginRight="15dp"
+                    android:layout_marginTop="15dp"
+                    app:cardCornerRadius="4dp">
                 <TextView
                     android:id="@+id/butterfly_content_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:gravity="center"
+                    android:text="asdfasdf"
                     android:layout_margin="10dp"/>
+                </android.support.v7.widget.CardView>
 
-            </android.support.v7.widget.CardView>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    >
+                    <!--android:fitsSystemWindows="true"-->
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                    <Button
+                        android:id="@+id/cancel"
+                        android:layout_width="45dp"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/cancel"
+                        android:layout_alignParentLeft="true"
+                        android:layout_marginLeft="70dp"
+                        android:layout_alignParentBottom="true"/>
 
-                <Button
-                    android:id="@+id/cancel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="取消"
-                    android:layout_alignParentLeft="true"/>
+                    <Button
+                        android:id="@+id/use_photo"
+                        android:layout_width="45dp"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/choose"
+                        android:layout_alignParentRight="true"
+                        android:layout_marginRight="70dp"
+                        android:layout_alignParentBottom="true"
+                        />
 
-                <Button
-                    android:id="@+id/use_photo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="使用照片"
-                    android:layout_alignParentRight="true"
-                    />
-
-            </RelativeLayout>
-
+                </RelativeLayout>
+            </LinearLayout>
         </LinearLayout>
     </FrameLayout>
 

@@ -9,7 +9,11 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.example.butterflyrecognition.R;
+import com.example.butterflyrecognition.Util.ImageUtil;
+import com.example.butterflyrecognition.db.InfoDetail;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,11 +26,13 @@ public class VPAdapter extends PagerAdapter {
     private Context context;
     //    private List<Integer> imgs;
     private List<String> imgs;
+    private InfoDetail infoDetail;
+    InputStream assetFile = null;
 
-    public VPAdapter(Context context, ArrayList<String> imageList) {
+    public VPAdapter(Context context, ArrayList<String> imageList, InfoDetail infoDetail) {
         this.context = context;
         imgs = new ArrayList<>();
-
+        this.infoDetail = infoDetail;
         //        imgs.add(R.mipmap.zy_28l);
         //        imgs.add(R.mipmap.zy_28q);
         //        imgs.add(R.mipmap.zy_28w);
@@ -54,11 +60,28 @@ public class VPAdapter extends PagerAdapter {
         //        iv.setImageResource(imgs.get(position % 3));
         //为选中的当前页面加载对应图片
         if (imgs.size() > 1) {
-            //            iv.setImageURI(Uri.parse(imgs.get(position % 3)));
-            Glide.with(context).load(imgs.get(position % 3)).into(iv);
+            try {
+                assetFile = context.getAssets().open("btf/" + infoDetail.getName() + (position % 3) + ".jpg");
+                //            assetFile = context.getClass().getResourceAsStream("/assets/" + ButterflyActivity.images[1]);
+                //            iv.setImageURI(Uri.parse(imgs.get(position % 3)));
+                byte[] imagebyte = ImageUtil.getImageFromAsset(assetFile);
+
+                //            Glide.with(context).load(imgs.get(position % imgs.size())).into(iv);
+                Glide.with(context).load(imagebyte).into(iv);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } else {
             //            iv.setImageURI(Uri.parse(imgs.get(0)));
-            Glide.with(context).load(imgs.get(0)).into(iv);
+            try {
+                assetFile = context.getAssets().open("btf/" + infoDetail.getName() + "0.jpg");
+                //            assetFile = context.getClass().getResourceAsStream("/assets/" + ButterflyActivity.images[1]);
+                //            Glide.with(context).load(imgs.get(0)).into(iv);
+                byte[] imagebyte = ImageUtil.getImageFromAsset(assetFile);
+                Glide.with(context).load(imagebyte).into(iv);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         container.addView(view);
         return view;

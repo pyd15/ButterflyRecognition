@@ -85,7 +85,7 @@ public class ButterflyAdapter extends RecyclerView.Adapter<ButterflyAdapter.View
         Log.d("ButterflyAdapter", butterflyInfo.getImagePath());
         if (imagePath == null) {
             try {
-                imagePath=(String)new DownImage().execute(butterflyInfo.getImageUrl()).get();
+                imagePath = (String) new DownImage(butterflyInfo).execute(butterflyInfo.getImageUrl()).get();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (ExecutionException e) {

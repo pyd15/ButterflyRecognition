@@ -62,11 +62,11 @@ public class InfoActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-        collapsingToolbarLayout.setTitle(butterflyInfo.getName());
+        //        collapsingToolbarLayout.setTitle(butterflyInfo.getName());
 
         //        butterflypicture = (ImageView) findViewById(R.id.buttefly_big_image);
         vp = (GuardViewPager) findViewById(R.id.vp);
-        vpAdapter = new VPAdapter(this, imageList);
+        vpAdapter = new VPAdapter(this, imageList, butterflyInfo);
         vp.setAdapter(vpAdapter);
         ll = (LinearLayout) findViewById(R.id.ll);
 

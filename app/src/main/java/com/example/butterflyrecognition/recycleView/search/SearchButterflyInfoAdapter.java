@@ -13,6 +13,7 @@ import com.example.butterflyrecognition.db.ButterflyInfo;
 import com.example.butterflyrecognition.recycleView.InfoActivity;
 import com.example.butterflyrecognition.recycleView.indexBar.ButterflyInfo_copy;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +48,7 @@ public class SearchButterflyInfoAdapter extends RecyclerView.Adapter<SearchButte
             context=parent.getContext();
         }
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.butterfly_item, parent, false);
-        final SearchButterflyInfoHolder holder = new SearchButterflyInfoHolder(view);
+        final SearchButterflyInfoHolder holder = new SearchButterflyInfoHolder(context, view);
         holder.butterflyView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -55,7 +56,7 @@ public class SearchButterflyInfoAdapter extends RecyclerView.Adapter<SearchButte
                 ButterflyInfo_copy butterflyInfo = myButterflyList.get(postiton);
                 String[] images = butterflyInfo.getImagePath().split(",");
                 ArrayList<String> imageList = new ArrayList<String>();
-                for (int i = 0; i < images.length; i++) {
+                for (int i = 1; i < images.length; i++) {
                     imageList.add(images[i]);
                 }
                 Intent intent = new Intent(context,InfoActivity.class);
@@ -71,7 +72,11 @@ public class SearchButterflyInfoAdapter extends RecyclerView.Adapter<SearchButte
 
     @Override
     public void onBindViewHolder(SearchButterflyInfoHolder holder, int position) {
-        holder.bind(myButterflyList.get(position));
+        try {
+            holder.bind(myButterflyList.get(position));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

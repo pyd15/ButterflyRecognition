@@ -41,7 +41,7 @@ public class ClipImageLayout extends RelativeLayout {
         //		mZoomImageView.setImageDrawable(getResources().getDrawable(
         //				R.drawable.a));
 
-        mZoomImageView.setImageURI(Uri.parse("/storage/emulated/0/DCIM/Camera/IMG_20171208_171952.jpg"));
+        //        mZoomImageView.setImageURI(Uri.parse("/storage/emulated/0/DCIM/Camera/IMG_20171208_171952.jpg"));
         //"/storage/emulated/0/DCIM/Camera/IMG_20171208_171952.jpg"
 
         this.addView(mZoomImageView, lp);

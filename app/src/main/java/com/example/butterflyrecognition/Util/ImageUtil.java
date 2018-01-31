@@ -14,6 +14,8 @@ import android.text.TextUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Created by Dr.P on 2017/11/19.
@@ -94,6 +96,17 @@ public class ImageUtil {
             cursor.close();
         }
         return path;
+    }
+
+    public static byte[] getImageFromAsset(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream swapStream = new ByteArrayOutputStream();
+        byte[] buff = new byte[4096];
+        int rc = 0;
+        while ((rc = inputStream.read(buff)) != -1) {
+            swapStream.write(buff, 0, rc);
+        }
+        byte[] in2b = swapStream.toByteArray();
+        return in2b;
     }
 
     //对bitmap进行质量压缩

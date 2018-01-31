@@ -1,6 +1,7 @@
 package com.example.butterflyrecognition;
 
 import android.annotation.TargetApi;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,25 +13,33 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.butterflyrecognition.Util.HttpUtil;
+import com.example.butterflyrecognition.db.InfoDetail;
 import com.example.butterflyrecognition.fragment.DIYDialog;
 import com.example.butterflyrecognition.view.clip.ClipImageLayout;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -56,42 +65,82 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
 
     Button cancelbtn;
     Button use_photo;
-    //    ZoomImageView butterflyImageView;
-    //    ClipImageView butterflyImageView;
-    //    ClipImageView1 butterflyImageView;
     ClipImageLayout butterflyImageLayout;
     Toolbar toolbar;
     TextView butterflyContentText;
 
     String image_camera = null;
     String image_album = null;
-    String uploadUrl = "http://120.78.72.153:8080/btf/identify.do";
+    //        String uploadUrl = "http://120.78.72.153:8080/btf/identify.do";
+    String uploadUrl = "http://40.125.207.182:8080/identify.do";
 
     Bitmap clipBitmap;
     File clipImage;
+    private ProgressDialog progressDialog;
 
     private IntentFilter intentFilter;
     private NetworkChangeReciver networkChangeReciver;
 
     boolean camera_flag = false;
     boolean album_flag = false;
+    Gson gson = new Gson();
 
-    public static final String BUTTERFLY_NAME = "butterfly_image";
-    public static final String BUTTERFLY_IMAGE_ID = "butterfly_image_id";
     public static final String IMAGE_URI_CAMERA = "imagePath_camera";
     public static final String IMAGE_URI_ALBUM = "imagePath_Album";
-    public static final String IMAGE = "imagePath";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        //        if (Build.VERSION.SDK_INT >= 21) {
-        //            View decorView = getWindow().getDecorView();
-        //            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        //            getWindow().setStatusBarColor(Color.TRANSPARENT);
-        //        }
+        //                if (Build.VERSION.SDK_INT >= 21) {
+        //                    View decorView = getWindow().getDecorView();
+        //                    decorView.setSystemUiVisibility(
+        //                            View.SYSTEM_UI_FLAG_FULLSCREEN |
+        //                            View.SYSTEM_UI_FLAG_LAYOUT_STABLE|
+        //                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION|
+        //                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN|
+        //                                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        //                                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+        //                                    View.SYSTEM_UI_FLAG_IMMERSIVE
+        //                                    |
+        //                            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+        //                    );
+        //                    getWindow().setStatusBarColor(Color.parseColor("#00889a"));
+        //                }
+
+        getWindow().getDecorView().setSystemUiVisibility(
+                //                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                //                                                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
+                        //                                                                | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
+                        //                                        | View.SYSTEM_UI_FLAG_IMMERSIVE
+                        //                |View.SYSTEM_UI_FLAG_VISIBLE
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        );
+        //        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         setContentView(R.layout.activity_image);
+        getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+            @Override
+            public void onSystemUiVisibilityChange(int visibility) {
+                int uiOptions =
+                        //                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                        //布局位于状态栏下方
+                        //                        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                        //全屏
+                        //                        View.SYSTEM_UI_FLAG_FULLSCREEN |
+                        //隐藏导航栏
+                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+                                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+                if (Build.VERSION.SDK_INT >= 19) {
+                    uiOptions |= 0x00001000;
+                } else {
+                    uiOptions |= View.SYSTEM_UI_FLAG_LOW_PROFILE;
+                }
+                getWindow().getDecorView().setSystemUiVisibility(uiOptions);
+            }
+        });
 
         toolbar = (Toolbar) findViewById(R.id.toolbar_image);
         toolbar.bringToFront();
@@ -102,9 +151,6 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        //        butterflyImageLayout = (ZoomImageView) findViewById(R.id.butterfly_image_view);
-        //        butterflyImageLayout = (ClipImageView) findViewById(R.id.butterfly_image_view);
-        //        butterflyImageLayout = (ClipImageView1) findViewById(R.id.butterfly_image_view);
         butterflyImageLayout = (ClipImageLayout) findViewById(R.id.butterfly_image_view);
         butterflyContentText = (TextView) findViewById(R.id.butterfly_content_text);
         //        LinearLayoLinearLayout hintLayout = (LinearLayout) findViewById(R.id.hint_layout);ut hintLayout = (LinearLayout) findViewById(R.id.hint_layout);
@@ -114,6 +160,9 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
         use_photo = (Button) findViewById(R.id.use_photo);
         cancelbtn.setOnClickListener(this);
         use_photo.setOnClickListener(this);
+
+        //        DIYPopWin mPop=new DIYPopWin(ImageActivity.this,1);
+        //        mPop.showAtLocation(ImageActivity.this.findViewById(R.id.image_ll), Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 50, 50);
 
         Intent intent = getIntent();
         Uri imageUri1 = null;
@@ -133,7 +182,9 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                 Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri1));
                 //                butterflyImageLayout.setImageBitmap(bitmap);//将裁剪后的照片显示出来
                 //                butterflyImageLayout = new ClipImageLayout(this, null, image_camera);
-                butterflyImageLayout.setImagePath(image_camera);
+                //                butterflyImageLayout.setImagePath(image_camera);
+                Log.d("image_camera_parse", Uri.parse(image_camera).getPath());
+                butterflyImageLayout.setImagePath(Uri.parse(image_camera).getPath());
                 //                                Glide.with(this).load(imageUri1).into(butterflyImageLayout.mZoomImageView);
                 //                Glide.with(this).load(image_album).override(700,870).fitCenter().into(butterflyImageLayout);
                 camera_flag = true;
@@ -153,7 +204,7 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
             Toast.makeText(this, "Failed to get image!", Toast.LENGTH_SHORT).show();
         }
 
-        String butterflyContent = "双指移动并缩放一只蝴蝶至虚线框内";
+        String butterflyContent = "双指移动并缩放一只蝴蝶至方框内";
         butterflyContentText.setText(butterflyContent);
         butterflyContentText.setGravity(Gravity.CENTER_VERTICAL);
 
@@ -178,7 +229,9 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                 onBackPressed();
                 break;
             case R.id.use_photo:
+
                 if (camera_flag) {
+                    showProgressDialog();
                     try {
                         clipImage = new File
                                 ("/sdcard/DCIM/Screenshots/clip.jpg");//设置文件名称
@@ -192,14 +245,16 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                         //                        clipBitmap = butterflyImageLayout.getClippedBitmap();
                         clipBitmap = butterflyImageLayout.clip();
                         if (clipBitmap != null) {
-                            clipBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                            clipBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);//将clipBitmap写入clipImage中
                             fos.flush();
                             fos.close();
+                            Log.d("image_path_cut", clipImage.getPath());
                         } else {
                             Toast.makeText(this, "asdfsaf", Toast.LENGTH_SHORT).show();
                         }
                         if (clipImage.getPath() != null) {
-                            Log.d("image_path", clipImage.getPath());
+                            Log.d("image_path_before", clipImage.getPath());
+                            Toast.makeText(ImageActivity.this, "裁剪成功！", Toast.LENGTH_SHORT).show();
                         }
 
                         //      HttpUtil.sendOkHttpPicture(uploadUrl,image_camera, new Callback() {
@@ -209,15 +264,20 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                             onResponse(Call call, Response response) throws IOException {
                                 final String responeData = response.body().string();
                                 Log.d("imageUpload-response", responeData);
+                                final InfoDetail butterflyInfo1 = gson.fromJson(responeData, new TypeToken<InfoDetail>() {
+                                }.getType());
                                 if (responeData != null) {
                                     ImageActivity.this.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Toast.makeText(ImageActivity.this, "Upload Picture succeed! Name:" + responeData, Toast.LENGTH_LONG).show();
+                                            closeProgressDialog();
+                                            //                                            Toast.makeText(ImageActivity.this, "Upload Picture succeed! Name:" + responeData, Toast.LENGTH_LONG).show();
+                                            Log.d("response", responeData);
                                             Log.d("image_path", clipImage.getPath());
-                                            int id = 1;
-                                            //                                            ResultDialog resultDialog = new ResultDialog(ImageActivity.this, clipImage.getPath());
-                                            DIYDialog resultDialog = new DIYDialog(ImageActivity.this, clipImage.getPath(), id);
+                                            //ResultDialog resultDialog = new ResultDialog(ImageActivity.this, clipImage.getPath());
+                                            camera_flag = false;
+                                            DIYDialog resultDialog = new DIYDialog(ImageActivity.this, clipImage.getPath(), butterflyInfo1.getId());//butterflyInfo1.getId()
+                                            //                                            resultDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_TOAST);
                                             resultDialog.setCancelable(false);
                                             resultDialog.show();
                                         }
@@ -236,35 +296,35 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                             }
                         });
                     } catch (IOException e) {
-
                         e.printStackTrace();
                     }
                 } else if (album_flag) {
+                    showProgressDialog();
                     try {
                         clipImage = new File
                                 ("/sdcard/DCIM/Screenshots/clip.jpg");//设置文件名称
                         if (clipImage.exists()) {
                             clipImage.delete();
                         }
-
                         clipImage.createNewFile();
                         FileOutputStream fos = new FileOutputStream(clipImage);
 
                         //                        clipBitmap = butterflyImageLayout.getClippedBitmap();
                         clipBitmap = butterflyImageLayout.clip();
+                        Log.d("image_bitmap", clipBitmap.toString());
                         if (clipBitmap != null) {
 
                             clipBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
                             fos.flush();
                             fos.close();
+                            Log.d("image_path_fos", clipImage.getPath());
                         } else {
                             Toast.makeText
                                     (this, "asdfsaf", Toast.LENGTH_SHORT).show();
                         }
-                        if
-                                (clipImage.getPath() != null) {
-                            Log.d
-                                    ("image_path", clipImage.getPath());
+                        if (clipImage.getPath() != null) {
+                            Log.d("image_path_before_album", clipImage.getPath());
+                            Toast.makeText(ImageActivity.this, "裁剪成功！", Toast.LENGTH_SHORT).show();
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -278,17 +338,23 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                                 final String
                                         responeData = response.body().string();
                                 Log.d("imageUpload-response", responeData);
+                                final InfoDetail butterflyInfo1 = gson.fromJson(responeData, new TypeToken<InfoDetail>() {
+                                }.getType());
                                 if (responeData != null) {
                                     ImageActivity.this.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Toast.makeText(ImageActivity.this, "Upload Picture succeed! Name:" + responeData, Toast.LENGTH_LONG).show();
+                                            closeProgressDialog();
+                                            //                                            Toast.makeText(ImageActivity.this, "Upload Picture succeed! Name:" + responeData, Toast.LENGTH_LONG).show();
                                             Log.d("image_path", clipImage.getPath());
                                             //                                            ResultDialog resultDialog = new ResultDialog(ImageActivity.this, clipImage.getPath());
-                                            int id = 1;
-                                            DIYDialog resultDialog1 = new DIYDialog(ImageActivity.this, clipImage.getPath(), id);
+                                            album_flag = false;
+                                            //                                            DIYPopWin mPop=new DIYPopWin(ImageActivity.this,butterflyInfo1.getId());
+                                            //                                            mPop.showAtLocation(ImageActivity.this.findViewById(R.id.image_ll), Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 0, 0);
+                                            DIYDialog resultDialog1 = new DIYDialog(ImageActivity.this, clipImage.getPath(), butterflyInfo1.getId());//
+                                            //                                                                                        NoneDialog resultDialog1=new NoneDialog(ImageActivity.this, clipImage.getPath(), id);
+                                            //                                            resultDialog1.getWindow().setType(WindowManager.LayoutParams.TYPE_TOAST);
                                             resultDialog1.setCancelable(false);
-                                            Toast.makeText(ImageActivity.this, "What the hell!", Toast.LENGTH_LONG).show();
                                             resultDialog1.show();
                                         }
                                     });
@@ -308,9 +374,25 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                             }
                         });
                     } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
                 break;
+        }
+    }
+
+    private void showProgressDialog() {
+        if (progressDialog == null) {
+            progressDialog = new ProgressDialog(ImageActivity.this);
+            progressDialog.setMessage("识别中，请稍后...");
+            progressDialog.setCanceledOnTouchOutside(false);
+        }
+        progressDialog.show();
+    }
+
+    private void closeProgressDialog() {
+        if (progressDialog != null) {
+            progressDialog.dismiss();
         }
     }
 
@@ -411,6 +493,90 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                 Toast.makeText(context, "无法连接至服务器，请稍后再试", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    /**
+     * 设置顶部及底部的沉浸式,这个方法需要子类来调，必须在setContentView()之后调用
+     */
+    public void setTranslucentBar(final Toolbar toolbar, final View navigationView, int barColor) {
+        //当手机的版本在4.4的时候，设置透明之后，再设置高度，然后再设置显示的颜色
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT &&
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            if (toolbar != null) {
+                toolbar.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        ViewGroup.LayoutParams layoutParams = toolbar.getLayoutParams();
+                        layoutParams.height += getBarHeight("status_bar_height");
+                        toolbar.setLayoutParams(layoutParams);
+                    }
+                });
+
+                toolbar.setBackgroundColor(barColor);
+            }
+            if (navigationView != null) {
+                //这时还要判断当前手机有没有底部虚拟导航栏，如果没有的话，我们不做处理
+                if (hasNavigationView(getWindowManager())) {
+                    navigationView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            ViewGroup.LayoutParams layoutParams = navigationView.getLayoutParams();
+                            layoutParams.height += getBarHeight("navigation_bar_height");
+                            navigationView.setLayoutParams(layoutParams);
+                        }
+                    });
+                    navigationView.setBackgroundColor(barColor);
+                }
+            }
+            //5.0及以上
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(barColor);
+            getWindow().setNavigationBarColor(barColor);
+            toolbar.setBackgroundColor(barColor);
+        } else {
+            //4.4以下，没有沉浸式这一说，我们不做任何处理
+        }
+    }
+
+    /**
+     * 判断当前手机是否含有底部导航栏，如果没有的话返回false，有的话返回true
+     *
+     * @return
+     */
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
+    private boolean hasNavigationView(WindowManager wm) {
+        Display display = wm.getDefaultDisplay();
+        DisplayMetrics outMetrics = new DisplayMetrics();
+        display.getRealMetrics(outMetrics);
+        //获取屏幕实际的高度，实际的高度包括内容的高度和底部导航的高度
+        int realHeight = outMetrics.heightPixels;
+
+        outMetrics = new DisplayMetrics();
+        display.getMetrics(outMetrics);
+        //屏幕中内容的高度
+        int heightPixels = outMetrics.heightPixels;
+        //如果实际的高度和大于内容的高度说明该手机含有底部导航，否则没有
+        return realHeight - heightPixels > 0;
+    }
+
+    /**
+     * 获取状态栏或是底部导航栏的高度
+     *
+     * @return
+     */
+    public int getBarHeight(String dimenName) {
+        int height = 0;
+        try {
+            Class clazz = Class.forName("com.android.internal.R$dimen");
+            Object object = clazz.newInstance();
+            String s = clazz.getField(dimenName).get(object).toString();
+            int heightId = Integer.parseInt(s);
+            //dp 2 px
+            height = getResources().getDimensionPixelSize(heightId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return height;
     }
 }
 
