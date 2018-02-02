@@ -13,10 +13,8 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.RequiresApi;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -30,7 +28,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,14 +42,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
 //import com.githang.clipimage.ClipImageView;
@@ -153,9 +145,6 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
 
         butterflyImageLayout = (ClipImageLayout) findViewById(R.id.butterfly_image_view);
         butterflyContentText = (TextView) findViewById(R.id.butterfly_content_text);
-        //        LinearLayoLinearLayout hintLayout = (LinearLayout) findViewById(R.id.hint_layout);ut hintLayout = (LinearLayout) findViewById(R.id.hint_layout);
-        FrameLayout hintLayout = (FrameLayout) findViewById(R.id.hint_layout);
-
         cancelbtn = (Button) findViewById(R.id.cancel);
         use_photo = (Button) findViewById(R.id.use_photo);
         cancelbtn.setOnClickListener(this);
@@ -175,30 +164,18 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
             image_album = intent.getStringExtra(IMAGE_URI_ALBUM);
             Log.d("image_album", image_album);
         }
-        //                Glide.with(this).load(getImagePath(imageUri,null)).into(butterflyImageLayout);
-
         if (image_camera != null) {
             try {
                 Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri1));
-                //                butterflyImageLayout.setImageBitmap(bitmap);//将裁剪后的照片显示出来
-                //                butterflyImageLayout = new ClipImageLayout(this, null, image_camera);
-                //                butterflyImageLayout.setImagePath(image_camera);
                 Log.d("image_camera_parse", Uri.parse(image_camera).getPath());
                 butterflyImageLayout.setImagePath(Uri.parse(image_camera).getPath());
-                //                                Glide.with(this).load(imageUri1).into(butterflyImageLayout.mZoomImageView);
-                //                Glide.with(this).load(image_album).override(700,870).fitCenter().into(butterflyImageLayout);
                 camera_flag = true;
             } catch (FileNotFoundException e) {
                 Log.d("image1FileNotFound", imageUri1.toString());
             }
         } else if (image_album != null) {
             Bitmap bitmap = BitmapFactory.decodeFile(image_album);
-            //            Bitmap bitmap = BitmapFactory.decodeFile(turnFilePath);
-            //            butterflyImageLayout.setImageBitmap(bitmap);
-            //            butterflyImageLayout = new ClipImageLayout(this, null, image_album);
             butterflyImageLayout.setImagePath(image_album);
-            //            Glide.with(this).load(image_album).into(butterflyImageLayout);
-            //            Glide.with(this).load(image_album).override(1700,1870).into(butterflyImageLayout);
             album_flag = true;
         } else {
             Toast.makeText(this, "Failed to get image!", Toast.LENGTH_SHORT).show();
@@ -229,26 +206,27 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                 onBackPressed();
                 break;
             case R.id.use_photo:
-
+                Log.d("image_camera_flag", String.valueOf(camera_flag));
+                Log.d("image_album_flag", String.valueOf(album_flag));
                 if (camera_flag) {
                     showProgressDialog();
                     try {
                         clipImage = new File
-                                ("/sdcard/DCIM/Screenshots/clip.jpg");//设置文件名称
+                                //                                ("/sdcard/DCIM/Screenshots/clip.jpg");//设置文件名称
+                                (Environment.getExternalStorageDirectory().getPath() + "/clip.jpg");
                         if (clipImage.exists()) {
                             clipImage.delete();
                         }
-
                         clipImage.createNewFile();
+                        Log.d("image_clip", "clipImage创建成功");
                         FileOutputStream fos = new FileOutputStream(clipImage);
-
-                        //                        clipBitmap = butterflyImageLayout.getClippedBitmap();
                         clipBitmap = butterflyImageLayout.clip();
                         if (clipBitmap != null) {
                             clipBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);//将clipBitmap写入clipImage中
                             fos.flush();
                             fos.close();
                             Log.d("image_path_cut", clipImage.getPath());
+                            Toast.makeText(this, "裁剪成功-fos", Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(this, "asdfsaf", Toast.LENGTH_SHORT).show();
                         }
@@ -256,8 +234,6 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                             Log.d("image_path_before", clipImage.getPath());
                             Toast.makeText(ImageActivity.this, "裁剪成功！", Toast.LENGTH_SHORT).show();
                         }
-
-                        //      HttpUtil.sendOkHttpPicture(uploadUrl,image_camera, new Callback() {
                         HttpUtil.sendOkHttpPicture(uploadUrl, clipImage.getPath(), new Callback() {
                             @Override
                             public void
@@ -271,13 +247,10 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                                         @Override
                                         public void run() {
                                             closeProgressDialog();
-                                            //                                            Toast.makeText(ImageActivity.this, "Upload Picture succeed! Name:" + responeData, Toast.LENGTH_LONG).show();
                                             Log.d("response", responeData);
                                             Log.d("image_path", clipImage.getPath());
-                                            //ResultDialog resultDialog = new ResultDialog(ImageActivity.this, clipImage.getPath());
                                             camera_flag = false;
                                             DIYDialog resultDialog = new DIYDialog(ImageActivity.this, clipImage.getPath(), butterflyInfo1.getId());//butterflyInfo1.getId()
-                                            //                                            resultDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_TOAST);
                                             resultDialog.setCancelable(false);
                                             resultDialog.show();
                                         }
@@ -302,18 +275,16 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                     showProgressDialog();
                     try {
                         clipImage = new File
-                                ("/sdcard/DCIM/Screenshots/clip.jpg");//设置文件名称
+                                //                                ("/sdcard/DCIM/Screenshots/clip.jpg");//设置文件名称
+                                (Environment.getExternalStorageDirectory().getPath() + "/clip.jpg");//设置文件名称
                         if (clipImage.exists()) {
                             clipImage.delete();
                         }
                         clipImage.createNewFile();
                         FileOutputStream fos = new FileOutputStream(clipImage);
-
-                        //                        clipBitmap = butterflyImageLayout.getClippedBitmap();
                         clipBitmap = butterflyImageLayout.clip();
                         Log.d("image_bitmap", clipBitmap.toString());
                         if (clipBitmap != null) {
-
                             clipBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
                             fos.flush();
                             fos.close();
@@ -330,7 +301,6 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                         e.printStackTrace();
                     }
                     try {
-                        // HttpUtil.sendOkHttpPicture(uploadUrl,image_album, new Callback() {
                         HttpUtil.sendOkHttpPicture(uploadUrl, clipImage.getPath(), new Callback() {
                             @Override
                             public void
@@ -345,15 +315,9 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                                         @Override
                                         public void run() {
                                             closeProgressDialog();
-                                            //                                            Toast.makeText(ImageActivity.this, "Upload Picture succeed! Name:" + responeData, Toast.LENGTH_LONG).show();
                                             Log.d("image_path", clipImage.getPath());
-                                            //                                            ResultDialog resultDialog = new ResultDialog(ImageActivity.this, clipImage.getPath());
                                             album_flag = false;
-                                            //                                            DIYPopWin mPop=new DIYPopWin(ImageActivity.this,butterflyInfo1.getId());
-                                            //                                            mPop.showAtLocation(ImageActivity.this.findViewById(R.id.image_ll), Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL, 0, 0);
                                             DIYDialog resultDialog1 = new DIYDialog(ImageActivity.this, clipImage.getPath(), butterflyInfo1.getId());//
-                                            //                                                                                        NoneDialog resultDialog1=new NoneDialog(ImageActivity.this, clipImage.getPath(), id);
-                                            //                                            resultDialog1.getWindow().setType(WindowManager.LayoutParams.TYPE_TOAST);
                                             resultDialog1.setCancelable(false);
                                             resultDialog1.show();
                                         }
@@ -364,7 +328,6 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
                             @Override
                             public void
                             onFailure(Call call, IOException e) {
-
                                 ImageActivity.this.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -396,65 +359,6 @@ public class ImageActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    /**
-     * @param mediaType MediaType
-     * @param uploadUrl put请求地址
-     * @param localPath 本地文件路径
-     * @return 响应的结果 和 HTTP status code
-     * @throws IOException
-     */
-    public String put(MediaType mediaType,
-                      String uploadUrl, String localPath) throws
-            IOException {
-        File file = new File(localPath);
-        RequestBody body =
-                RequestBody.create(mediaType, file);
-        Request request = new
-                Request.Builder()
-                .url(uploadUrl)
-                .put(body)
-                .build();
-        //修改各种 Timeout
-        OkHttpClient client = new
-                OkHttpClient.Builder()
-                .connectTimeout(600,
-                        TimeUnit.SECONDS)
-                .readTimeout(200,
-                        TimeUnit.SECONDS)
-                .writeTimeout(600,
-                        TimeUnit.SECONDS)
-                .build();
-        //如果不需要可以直接写成 OkHttpClient
-        client = new OkHttpClient.Builder().build();
-
-        Response response = client
-                .newCall(request)
-                .execute();
-        return response.body().string() + ":"
-                + response.code();
-    }
-
-    //上传JPG图片
-    public String putImg(String uploadUrl,
-                         String localPath) throws IOException {
-        MediaType imageType =
-                MediaType.parse("image/jpg; charset=utf-8");
-        return put(imageType, uploadUrl,
-                localPath);
-    }
-
-
-    private void replaceFragment(Fragment
-                                         fragment) {
-        FragmentManager fragmentManager =
-                getSupportFragmentManager();
-        FragmentTransaction transaction =
-                fragmentManager.beginTransaction();
-        transaction.replace(R.id.hint_layout,
-                fragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
-    }
 
     @Override
     public boolean onOptionsItemSelected
