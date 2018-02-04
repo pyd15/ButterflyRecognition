@@ -139,6 +139,7 @@ public class DIYDialog extends BaseDialog {
                     //                    }
                     intent.putExtra("imageList", getImagePaths(infoDetail));
                     mContext.startActivity(intent);
+
                     break;
                 case R.id.homepage:
                     Intent intent1 = new Intent(getContext(), MainActivity.class);
